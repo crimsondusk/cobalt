@@ -60,3 +60,24 @@ command (raw) {
 	str raw = meta.message.substr (space + 1, -1);
 	conn->writef ("%s\n", raw.chars());
 }
+
+// =============================================================================
+command (trymask) {
+	if (parms.size() < 2)
+		conn->writef ("PRIVMSG %s :I need a mask to check against!\n",
+			(char*)meta.channel);
+	
+	for (uint i = 0; i < conn->userlist.size(); i++) {
+		IRCUser* usermeta = &conn->userlist[i];
+		str userhost;
+		userhost.format ("%s!%s@%s",
+			(char*)usermeta->nick,
+			(char*)usermeta->user,
+			(char*)usermeta->host);
+		
+		if (Mask (userhost, parms[1])) {
+			conn->writef ("PRIVMSG %s :%s matches the mask\n",
+				(char*)meta.channel, (char*)usermeta->nick);
+		}
+	}
+}

@@ -379,7 +379,7 @@ str str::tolower () {
 	str n = text;
 	
 	for (uint u = 0; u < len(); u++) {
-		if (n[u] > 'A' && n[u] < 'Z')
+		if (n[u] >= 'A' && n[u] < 'Z')
 			n.text[u] += ('a' - 'A');
 	}
 	
@@ -391,7 +391,7 @@ str str::toupper () {
 	str n = text;
 	
 	for (uint u = 0; u < len(); u++) {
-		if (n[u] > 'a' && n[u] < 'z')
+		if (n[u] >= 'a' && n[u] < 'z')
 			n.text[u] -= ('a' - 'A');
 	}
 	

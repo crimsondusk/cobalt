@@ -6,6 +6,7 @@
 
 array<gameserverinfo> g_GameServers;
 array<configinfo> g_Config;
+array<str> g_AdminMasks;
 
 typedef struct {
 	name_e name;
@@ -76,14 +77,27 @@ void loadConfig () {
 	enum {
 		PARSERMODE_Properties,
 		PARSERMODE_Servers,
+		PARSERMODE_Admins,
 	} parserMode = PARSERMODE_Properties;
 	
-	while (r.Next(parserMode == PARSERMODE_Servers)) {
-		if (+(r.token) == "SERVERS") {
-			r.MustNext (":");
+	for (;;) {
+		str next = r.PeekNext (true);
+		
+		if (+next == "SERVERS:") {
+			r.Next (true);
 			parserMode = PARSERMODE_Servers;
 			continue;
 		}
+		
+		if (+next == "ADMINS:") {
+			r.Next (true);
+			parserMode = PARSERMODE_Admins;
+			continue;
+		}
+		
+		// ===========================================
+		if (!r.Next(parserMode != PARSERMODE_Properties))
+			break;
 		
 		if (parserMode == PARSERMODE_Properties) {
 			name_e cfgName = name(None);
@@ -138,6 +152,10 @@ void loadConfig () {
 			info.node = ipstring;
 			info.port = atoi (port);
 			g_GameServers << info;
+		} else if (PARSERMODE_Admins) {
+			// Add the admin mask to list
+			g_AdminMasks << r.token;
+			printf ("added `%s` to admin list\n", r.token.chars());
 		} else
 			assert (false);
 	}

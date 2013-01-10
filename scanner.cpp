@@ -96,11 +96,11 @@ bool Scanner::MustLiteral () {
 	return true;
 }
 
-str Scanner::PeekNext () {
+str Scanner::PeekNext (bool raw) {
 	ulong oldcurs = cursor;
 	str oldtoken = token;
 	
-	if (!Next())
+	if (!Next (raw))
 		return "";
 	
 	str peeked = token;

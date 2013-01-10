@@ -256,6 +256,15 @@ void IRCConnection::parseToken () {
 			host = usermask.substr (atsign + 1, -1);
 		}
 		
+		// Check whether the message came from an administrator
+		bool fromadmin = false;
+		for (uint i = 0; i < g_AdminMasks.size() && !fromadmin; i++)
+			if (Mask (usermask, g_AdminMasks[i]))
+				fromadmin = true;
+		
+		if (fromadmin)
+			printf ("message came from admin\n");
+		
 		if (codestring == "JOIN") {
 			// Try find meta for this user
 			IRCUser* usermeta = findIRCUser (nick);

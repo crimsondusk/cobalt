@@ -68,14 +68,10 @@ str GetDate () {
 
 // =============================================================================
 // Checks a string against a mask
-bool CheckMask (str string, str mask) {
-	char* s1 = string.chars();
-	char* s2 = mask.chars();
-	int l1 = string.len();
-	int l2 = mask.len();
-	
-	char* mptr = s2;
-	for (char* sptr = string; *sptr != 0; sptr++) {
+bool Mask (str string, str mask) {
+	char* maskstring = mask.chars();
+	char* mptr = maskstring;
+	for (char* sptr = string.chars(); *sptr != '\0'; sptr++) {
 		if (*mptr == '?') {
 			if (*(sptr + 1) == '\0') {
 				// ? demands that there's a character here and there wasn't.
@@ -84,7 +80,7 @@ bool CheckMask (str string, str mask) {
 			}
 			
 		} else if (*mptr == '*') {
-			char end = *(mptr + 1);
+			char end = *(++mptr);
 			
 			// * is the final character of the message, so if we get
 			// here, all of the remaining string matches against the *.
@@ -92,8 +88,13 @@ bool CheckMask (str string, str mask) {
 				return true;
 			
 			// Skip to the end character
-			while (*sptr != end)
+			while (*sptr != end && *sptr != '\0')
 				sptr++;
+			
+			if (*sptr == '\0') {
+				// String ended while the mask still had stuff
+				return false;
+			}
 		} else if (*sptr != *mptr)
 			return false;
 		

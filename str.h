@@ -8,9 +8,6 @@ template<class T> class array;
 
 char* vdynformat (const char* csFormat, va_list vArgs, long int lSize);
 
-#define SCCF_NUMBER	1<<0
-#define SCCF_WORD	1<<1
-
 // Dynamic string object, allocates memory when needed and
 // features a good bunch of manipulation methods
 class str {

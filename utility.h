@@ -18,6 +18,6 @@ str GetDate ();
 
 // =============================================================================
 // Checks a string against a mask.
-bool CheckMask (str string, str mask);
+bool Mask (str string, str mask);
 
 #endif // __UTILITY_H__

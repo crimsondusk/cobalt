@@ -15,6 +15,7 @@ typedef struct {
 
 extern array<gameserverinfo> g_GameServers;
 extern array<configinfo> g_Config;
+extern array<str> g_AdminMasks;
 
 void loadConfig ();
 void parseError (const char* fmt, ...) __attribute__ ((format (printf, 1, 2)));

@@ -17,7 +17,7 @@ public:
 	bool MustNext (str stuff = "");
 	bool MustLiteral ();
 	bool MustString ();
-	str PeekNext ();
+	str PeekNext (bool raw = false);
 };
 
 #endif // __SCANNER_H__
