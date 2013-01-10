@@ -70,21 +70,41 @@ enum userstatus_e {
 	voice,
 	halfop,
 	op,
+	ircop,
 };
 
-#define UF_IRCOp	(1 << 0)
-#define UF_Away		(1 << 1)
+#define UF_Operator		(1 << 0) // is an operator on the channel
+#define UF_HalfOperator	(1 << 1) // is a half-operator
+#define UF_Voiced		(1 << 2) // is voiced on the channel
+#define UF_IRCOp		(1 << 3) // is an IRC operator
+#define UF_Away			(1 << 4) // is /AWAY
+#define UF_Admin		(1 << 5) // is a configured administrator of this bot
 
 class IRCUser {
 public:
 	str nick, user, host;
-	userstatus_e status;
 	str server;
 	long flags;
+	bool admin;
 	
 	IRCUser () {
-		status = normal;
 		flags = 0;
+	}
+	
+	userstatus_e status () {
+		if (flags & UF_IRCOp)
+			return ircop;
+		if (flags & UF_Operator)
+			return op;
+		if (flags & UF_HalfOperator)
+			return halfop;
+		if (flags & UF_Voiced)
+			return voice;
+		return normal;
+	}
+	
+	void RemoveChannelStatus () {
+		flags &= ~(UF_Operator | UF_HalfOperator | UF_Voiced);
 	}
 };
 
@@ -97,13 +117,18 @@ public:
 	bool authed;
 	bool connected;
 	bool namesdone;
+	
+	// List of known users
 	array<IRCUser> userlist;
+	
+	// Our user meta
 	IRCUser* me;
 	
 	IRCConnection (const char* node, unsigned int port);
 	ssize_t writef (const char* fmt, ...) __attribute__ ((format (printf,2,3)));
+	void privmsgf (const char* target, const char* fmt, ...) __attribute__ ((format (printf,3,4)));
 	void parseToken ();
-	IRCUser* findIRCUser (str nick);
+	IRCUser* FindUserMeta (str nick);
 	IRCUser* FetchUserMeta (str nick);
 };
 

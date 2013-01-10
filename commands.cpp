@@ -12,20 +12,20 @@ IRCCommandAdder::IRCCommandAdder (const char* namestring, COMMANDTYPE (func)) {
 // =============================================================================
 command (sayhi) {
 	if (parms.size() < 2)
-		conn->writef ("PRIVMSG %s :Hi!\n", (char*)meta.channel);
+		conn->privmsgf (meta.channel, "Hi!");
 	else
-		conn->writef ("PRIVMSG %s :Hi, %s!\n", (char*)meta.channel, (char*)parms[1]);
+		conn->privmsgf (meta.channel, "Hi, %s!", (char*)parms[1]);
 }
 
 // =============================================================================
 command (quit) {
-	if (meta.user->status < op && !(meta.user->flags & UF_IRCOp)) {
-		conn->writef ("PRIVMSG %s :%s: Who are you to tell me to get out?\n",
-			(char*)meta.channel, (char*)meta.user->nick);
+	if (meta.user->status() < op && !(meta.user->flags & UF_Admin)) {
+		conn->privmsgf (meta.channel, "%s: Who are you to tell me to get out?",
+			(char*)meta.user->nick);
 		return;
 	}
 	
-	conn->writef ("PRIVMSG %s :Bye.\n", (char*)meta.channel);
+	conn->privmsgf (meta.channel, "Bye.");
 	conn->writef ("QUIT :\n");
 }
 
@@ -36,9 +36,9 @@ command (userlist) {
 		conn->writef ("PRIVMSG %s :%u. %s (%s@%s), status: %s%s%s\n",
 			(char*)meta.channel, i, (char*)usermeta->nick,
 			(char*)usermeta->user, (char*)usermeta->host,
-			(usermeta->status == op) ? "Operator" : 
-			(usermeta->status == halfop) ? "Half-operator" :
-			(usermeta->status == voice) ? "Voiced user" : "Normal user",
+			(usermeta->flags & UF_Operator) ? "Operator" : 
+			(usermeta->flags & UF_HalfOperator) ? "Half-operator" :
+			(usermeta->flags & UF_Voiced) ? "Voiced user" : "Normal user",
 			(usermeta->flags & UF_IRCOp) ? ", IRC Operator" : "",
 			(usermeta->flags & UF_Away) ? ", AFK" : "");
 	}
@@ -50,7 +50,7 @@ command (userlist) {
 
 // =============================================================================
 command (raw) {
-	if (meta.user->status < op && !(meta.user->flags & UF_IRCOp)) {
+	if (!(meta.user->flags & UF_Admin)) {
 		conn->writef ("PRIVMSG %s :%s: Who are you to tell me what to do?\n",
 			(char*)meta.channel, (char*)meta.user->nick);
 		return;

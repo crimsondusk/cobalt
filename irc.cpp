@@ -80,6 +80,13 @@ ssize_t IRCConnection::writef (const char* fmt, ...) {
 	return r;
 }
 
+void IRCConnection::privmsgf (const char* target, const char* fmt, ...) {
+	PERFORM_FORMAT (fmt, buf);
+	buf[strlen (buf)] = '\0';
+	writef ("PRIVMSG %s :%s\n", target, buf);
+	delete[] buf;
+}
+
 void IRCConnection::parseToken () {
 	printf ("-> %s\n", (char*)token);
 	
@@ -129,10 +136,8 @@ void IRCConnection::parseToken () {
 			userlist.clear ();
 		*/
 		
-		if (msg[4] != getConfig (Channel)) {
-			printf ("got /NAMES of %s, my channel is %s!\n", (char*)msg[3], (char*)getConfig (Channel));
+		if (msg[4] != getConfig (Channel))
 			return;
-		}
 		
 		for (uint i = 5; i < msg.size(); i++) {
 			str nick = msg[i];
@@ -145,34 +150,39 @@ void IRCConnection::parseToken () {
 				nick -= -1;
 			
 			// Determine status
-			userstatus_e status = normal;
-			if (nick[0] == getConfig (OpSymbol)[0])
-				status = op;
-			else if (nick[0] == getConfig (HalfOpSymbol)[0])
-				status = halfop;
-			else if (nick[0] == getConfig (VoiceSymbol)[0])
-				status = voice;
+			long statusflags = 0;
+			uint j;
+			for (j = 0; j < nick.len(); j++) {
+				if (nick[j] == getConfig (OpSymbol)[0])
+					statusflags = UF_Operator;
+				else if (nick[j] == getConfig (HalfOpSymbol)[0])
+					statusflags = UF_HalfOperator;
+				else if (nick[j] == getConfig (VoiceSymbol)[0])
+					statusflags = UF_Voiced;
+				else
+					break;
+			}
 			
 			// Remove the status symbol from the name now that
 			// we have identified it.
-			if (status != normal)
-				nick -= -1;
+			nick -= -j;
 			
 			// If we already have him listed, just update his status and get out.
 			// /NAMES won't give us anything else.
-			if (IRCUser* meta = findIRCUser (nick)) {
-				meta->status = status;
+			if (IRCUser* meta = FindUserMeta (nick)) {
+				meta->RemoveChannelStatus ();
+				meta->flags |= statusflags;
 				continue;
 			}
 			
 			IRCUser info;
 			info.nick = nick;
 			info.host = info.user = "";
-			info.status = status;
+			info.flags = statusflags;
 			userlist << info;
 			
 			printf ("User list: added %s: (%d)\n",
-				info.nick.chars(), (int)(info.status));
+				info.nick.chars(), (int)(info.status()));
 		}
 		
 		namesdone = false;
@@ -197,41 +207,30 @@ void IRCConnection::parseToken () {
 		// Get the meta object
 		IRCUser* meta = FetchUserMeta (nick);
 		
-		printf ("Setting meta for %s\n", (char*)meta->nick);
-		
 		meta->user = user;
 		meta->host = host;
 		meta->server = server;
-		meta->status = normal;
-		
-		printf ("%s is %s!%s@%s\n", (char*)meta->nick, (char*)meta->nick,
-			(char*)meta->user, (char*)meta->host);
+		meta->RemoveChannelStatus ();
 		
 		// Scan through the flags field for stuff
 		for (uint i = 0; i < flags.len(); i++) {
 			switch (flags[i]) {
 			case 'H': // Here
-				printf ("%s is here\n", (char*)meta->nick);
 				meta->flags &= ~UF_Away;
 				break;
 			case 'G': // Gone
-				printf ("%s is afk\n", (char*)meta->nick);
 				meta->flags |= UF_Away;
 				break;
 			case '+': // Voiced user
-				printf ("%s is voiced\n", (char*)meta->nick);
-				meta->status = voice;
+				meta->flags |= UF_Voiced;
 				break;
 			case '%': // Half-operator
-				printf ("%s is halfop\n", (char*)meta->nick);
-				meta->status = halfop;
+				meta->flags |= UF_HalfOperator;
 				break;
 			case '@': // Operator
-				printf ("%s is op\n", (char*)meta->nick);
-				meta->status = op;
+				meta->flags |= UF_Operator;
 				break;
 			case '*': // IRC operator
-				printf ("%s is irc op\n", (char*)meta->nick);
 				meta->flags |= UF_IRCOp;
 				break;
 			}
@@ -262,19 +261,15 @@ void IRCConnection::parseToken () {
 			if (Mask (usermask, g_AdminMasks[i]))
 				fromadmin = true;
 		
-		if (fromadmin)
-			printf ("message came from admin\n");
-		
 		if (codestring == "JOIN") {
 			// Try find meta for this user
-			IRCUser* usermeta = findIRCUser (nick);
+			IRCUser* usermeta = FindUserMeta (nick);
 			if (!usermeta) {
 				// Not in the userlist, add him there.
 				IRCUser info;
 				info.nick = nick;
 				info.user = user;
 				info.host = host;
-				info.status = normal;
 				usermeta = &(userlist << info);
 				
 				printf ("Added %s to userlist\n", (char*)nick);
@@ -285,8 +280,14 @@ void IRCConnection::parseToken () {
 				usermeta->host = host;
 				
 				// Users who join have normal user status by default.
-				usermeta->status = normal;
+				usermeta->RemoveChannelStatus ();
 			}
+			
+			// Mark down if he's this bot's admin
+			if (fromadmin)
+				usermeta->flags |= UF_Admin;
+			else
+				usermeta->flags &= ~UF_Admin;
 			
 			if ((char*)nick == getConfig(Nickname)) {
 				// It was us who joined! Mark our meta.
@@ -312,7 +313,7 @@ void IRCConnection::parseToken () {
 			array<str> msgargs = message / " ";
 			
 			printf ("%s said to %s: `%s`\n", (char*)nick, (char*)target, (char*)message);
-			IRCUser* ircuser = findIRCUser (nick);
+			IRCUser* ircuser = FindUserMeta (nick);
 			
 			// ========================
 			// CTCP support
@@ -343,8 +344,6 @@ void IRCConnection::parseToken () {
 			
 			if (message[0] == getConfig (IRCCommandPrefix)[0]) {
 				str cmdname = msgargs[0].substr (1, -1);
-				
-				cmdname.dump ();
 				
 				// If this was called by someone who we don't have in our books,
 				// we know nothing about them and they may not call any commands.
@@ -379,7 +378,7 @@ void IRCConnection::parseToken () {
 	}
 }
 
-IRCUser* IRCConnection::findIRCUser (str nick) {
+IRCUser* IRCConnection::FindUserMeta (str nick) {
 	for (uint i = 0; i < userlist.size(); i++)
 		if (+userlist[i].nick == +nick)
 			return &userlist[i];
@@ -388,7 +387,7 @@ IRCUser* IRCConnection::findIRCUser (str nick) {
 
 IRCUser* IRCConnection::FetchUserMeta (str nick) {
 	IRCUser* metaptr;
-	if ((metaptr = findIRCUser (nick)) != NULL)
+	if ((metaptr = FindUserMeta (nick)) != NULL)
 		return metaptr;
 	
 	// Didn't find him. Create an empty meta and return it.
