@@ -206,6 +206,8 @@ void IRCConnection::parseToken () {
 		
 		// Get the meta object
 		IRCUser* meta = FetchUserMeta (nick);
+		if (!meta)
+			return;
 		
 		meta->user = user;
 		meta->host = host;
@@ -255,39 +257,27 @@ void IRCConnection::parseToken () {
 			host = usermask.substr (atsign + 1, -1);
 		}
 		
-		// Check whether the message came from an administrator
-		bool fromadmin = false;
-		for (uint i = 0; i < g_AdminMasks.size() && !fromadmin; i++)
-			if (Mask (usermask, g_AdminMasks[i]))
-				fromadmin = true;
+		// Try find meta for this user
+		IRCUser* usermeta = FetchUserMeta (nick);
+		
+		// Check whether the user is an admin now.
+		if (usermeta)
+			usermeta->CheckAdmin ();
 		
 		if (codestring == "JOIN") {
-			// Try find meta for this user
-			IRCUser* usermeta = FindUserMeta (nick);
-			if (!usermeta) {
-				// Not in the userlist, add him there.
-				IRCUser info;
-				info.nick = nick;
-				info.user = user;
-				info.host = host;
-				usermeta = &(userlist << info);
-				
-				printf ("Added %s to userlist\n", (char*)nick);
-			} else {
-				// Update their meta. Nick is unneeded since the user is found by
-				// it anyway.
+			str channel = msg[2].substr (1, -1);
+			if (channel != getConfig (Channel))
+				return;
+			
+			// Update their meta. Nick is unneeded since the user is found by
+			// it anyway.
+			if (usermeta) {
 				usermeta->user = user;
 				usermeta->host = host;
-				
+			
 				// Users who join have normal user status by default.
 				usermeta->RemoveChannelStatus ();
 			}
-			
-			// Mark down if he's this bot's admin
-			if (fromadmin)
-				usermeta->flags |= UF_Admin;
-			else
-				usermeta->flags &= ~UF_Admin;
 			
 			if ((char*)nick == getConfig(Nickname)) {
 				// It was us who joined! Mark our meta.
@@ -349,8 +339,7 @@ void IRCConnection::parseToken () {
 				// we know nothing about them and they may not call any commands.
 				// Though, anyone who's in the channel should be in the books..
 				if (ircuser == NULL) {
-					writef ("PRIVMSG %s :I don't know who you are, %s.\n",
-						target.chars(), nick.chars());
+					privmsgf (target, "I don't know who you are, %s.", (char*)nick);
 					return;
 				}
 				
@@ -371,6 +360,26 @@ void IRCConnection::parseToken () {
 					target.chars(), getConfig (IRCCommandPrefix)[0], cmdname.chars());
 				return;
 			}
+		} else if (codestring == "PART") {
+			// User left the channel, mark him out of the user list.
+			str channel = msg[2];
+			if (channel[0] == ':')
+				channel -= -1;
+			
+			if (channel != getConfig (Channel))
+				return;
+			
+			RemoveUser (nick);
+		} else if (codestring == "QUIT") {
+			// User quit IRC so he goes out of the user list unconditionally.
+			RemoveUser (nick);
+		} else if (codestring == "NICK") {
+			// User changed his nickname, update his meta.
+			str newnick = msg[2].substr (1, -1);
+			IRCUser* meta = FindUserMeta (nick);
+			if (meta)
+				meta->nick = newnick;
+			meta->CheckAdmin ();
 		}
 		
 		break;
@@ -386,6 +395,9 @@ IRCUser* IRCConnection::FindUserMeta (str nick) {
 }
 
 IRCUser* IRCConnection::FetchUserMeta (str nick) {
+	if (!nick.len())
+		return NULL;
+	
 	IRCUser* metaptr;
 	if ((metaptr = FindUserMeta (nick)) != NULL)
 		return metaptr;
@@ -394,4 +406,33 @@ IRCUser* IRCConnection::FetchUserMeta (str nick) {
 	IRCUser meta;
 	meta.nick = nick;
 	return &(userlist << meta);
+}
+
+void IRCConnection::RemoveUser (str nick) {
+	for (uint i = 0; i < userlist.size(); i++) {
+		if (userlist[i].nick == nick) {
+			userlist.remove (i);
+			break;
+		}
+	}
+}
+
+// ==============================================================================================
+// Check if this user becomes our administrator
+void IRCUser::CheckAdmin () {
+	if (nick.len() * user.len() * host.len() == 0)
+		return;
+	
+	str userhost;
+	userhost.format ("%s!%s@%s", (char*)nick, (char*)user, (char*)host);
+	
+	bool admin = false;
+	for (uint i = 0; i < g_AdminMasks.size() && !admin; i++)
+		if (Mask (userhost, g_AdminMasks[i]))
+			admin = true;
+	
+	if (admin)
+		flags |= UF_Admin;
+	else
+		flags &= ~UF_Admin;
 }

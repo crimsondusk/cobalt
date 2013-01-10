@@ -106,6 +106,8 @@ public:
 	void RemoveChannelStatus () {
 		flags &= ~(UF_Operator | UF_HalfOperator | UF_Voiced);
 	}
+	
+	void CheckAdmin ();
 };
 
 typedef struct addrinfo addrinfo_t;
@@ -130,6 +132,7 @@ public:
 	void parseToken ();
 	IRCUser* FindUserMeta (str nick);
 	IRCUser* FetchUserMeta (str nick);
+	void RemoveUser (str nick);
 };
 
 #endif // __TCP_H__

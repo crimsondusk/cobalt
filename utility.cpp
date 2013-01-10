@@ -10,10 +10,13 @@ template <class T> T Map (int expr, T defaultval, int numvals, ...) {
 		int key = va_arg (va, int);
 		T value = va_arg (va, T);
 		
-		if (key == expr)
+		if (key == expr) {
+			va_end (va);
 			return value;
+		}
 	}
 	
+	va_end (va);
 	return defaultval;
 }
 
