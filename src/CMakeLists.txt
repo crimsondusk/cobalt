@@ -1,0 +1,31 @@
+cmake_minimum_required( VERSION 2.8 )
+set( CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}" )
+set( CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/" )
+set( CMAKE_PREFIX_PATH "${CMAKE_PREFIX_PATH} /opt" )
+
+if( CMAKE_COMPILER_IS_GNUCXX )
+	set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -W -Wall -Wno-unused-parameter -std=c++11 -I/opt/include" )
+endif()
+
+# CMake is stupid..
+# set( CMAKE_EXE_LINKER_FLAGS, "${CMAKE_EXE_LINKER_FLAGS} -lgsoap++" )
+find_package( GSOAP REQUIRED )
+
+add_executable( cobalt
+	irc/irc.cpp
+	irc/irc_channel.cpp
+	irc/irc_commands.cpp
+	irc/irc_user.cpp
+	soap/soapC.c
+	soap/soapClient.c
+	cobalt.cpp
+	config.cpp
+	mantisbt.cpp
+	scanner.cpp
+	utility.cpp
+)
+
+target_link_libraries( cobalt
+	/opt/lib/libutil.so
+	gsoap
+)
