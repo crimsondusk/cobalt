@@ -76,9 +76,6 @@ void IRCConnection::incoming( str data )
 		write({ "JOIN %1", cfg( Name::Channel ) });
 		write({ "MODE %1 %2", currentNickname(), cfg( Name::UserFlags ) });
 		
-		write({ "JOIN #zatesting" });
-		write({ "JOIN #zadev frog" });
-		
 		setLoggedIn( true );
 		break;
 	
