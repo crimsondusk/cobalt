@@ -18,13 +18,13 @@ bool mask (str string, str mask) {
 	string = +string;
 	mask = +mask;
 	
-	const char* chars = string.toStdString().c_str();
-	const char* maskstring = mask.toStdString().c_str();
-	const char* mptr = maskstring.toStdString().c_str();
+	const char* chars = string.chars();
+	const char* maskstring = mask.chars();
+	const char* mptr = &maskstring[0];
 	
 	for (const char* sptr = chars; *sptr != '\0'; sptr++) {
 		if (*mptr == '?') {
-			if (* (sptr + 1) == '\0') {
+			if (*(sptr + 1) == '\0') {
 				// ? demands that there's a character here and there wasn't.
 				// Therefore, mask matching fails
 				return false;
@@ -54,7 +54,7 @@ bool mask (str string, str mask) {
 	return true;
 }
 
-str join (const QStringList& args, str delim) {
+str join (const CoStringList& args, str delim) {
 	str rep = "";
 	
 	for (const str& i : args) {

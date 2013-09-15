@@ -6,7 +6,6 @@
 #include <libcobaltcore/config.h>
 #include "version.h"
 #include "utility.h"
-#include "types.h"
 
 typedef CoString str;
 

@@ -1,1 +1,0 @@
-/usr/bin/c++    -W -Wall -Wno-unused-parameter -std=c++11    CMakeFiles/cobalt_test.dir/main.cpp.o  -o cobalt_test -rdynamic ../libcobaltcore/libcobaltcore.so -Wl,-rpath,/home/arezey/dev/cobalt/libcobaltcore/libcobaltcore 

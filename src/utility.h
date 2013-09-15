@@ -33,17 +33,9 @@ template <class T> T valueMap (int expr, T defaultval, int numvals, ...) {
 	return defaultval;
 }
 
-str join (const QStringList& args, str delim);
+str join (const CoStringList& args, str delim);
 
 int posof (const str& a, int i);
-
-template<class T> static inline T& min (T& a, T& b) {
-	return (a < b) ? a : b;
-}
-
-template<class T> static inline T& max (T& a, T& b) {
-	return (a > b) ? a : b;
-}
 
 // =============================================================================
 // Checks a string against a mask.
