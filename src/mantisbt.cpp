@@ -54,6 +54,7 @@ str issueStringRep (ns1__IssueData* data) {
 }
 
 bool ticketinfo (str idstr, str& val) {
+	print ("Requesting info on %1\n", idstr);
 	struct soap* soap = soap_new();
 	
 	// what a type name, really
@@ -68,7 +69,8 @@ bool ticketinfo (str idstr, str& val) {
 			TRACKER_ACCOUNT,
 			TRACKER_PASSWORD,
 			SOAP_STRING (idstr),
-			&resp) == SOAP_OK) {
+			&resp) == SOAP_OK)
+	{
 		val = issueStringRep (resp.return_);
 		result = true;
 	} else {

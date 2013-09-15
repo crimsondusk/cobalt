@@ -9,11 +9,11 @@
 #include "irc_user.h"
 #include "irc_channel.h"
 
-CONFIG (String, irc_channel, "#null-object")
+CONFIG (String, irc_channel, "")
 CONFIG (String, irc_usermodes, "+iw")
-CONFIG (String, irc_nickname, "cobalt")
-CONFIG (String, irc_username, "cobalt")
-CONFIG (String, irc_realname, "cobalt")
+CONFIG (String, irc_nickname, APPNAME)
+CONFIG (String, irc_username, APPNAME)
+CONFIG (String, irc_realname, APPNAME)
 CONFIG (String, irc_password, "")
 CONFIG (String, irc_chan_ownersymbol, "~")
 CONFIG (String, irc_chan_adminsymbol, "&")
@@ -81,14 +81,10 @@ void IRCConnection::incoming (str data) {
 	// Deliminate it
 	CoStringList tokens = data.split (" ");
 	
-	for (CoStringRef& tok : tokens)
-		print ("\t- %1\n", tok);
-	
 	if (tokens.size() == 0)
 		return;
 	
 	// If the server is pinging us, reply with a pong.
-	print ("tokens[0] = %1\n", tokens[0]);
 	if (+tokens[0] == "PING") {
 		write (fmt ("PONG %1", tokens[1]));
 		return;
@@ -268,7 +264,7 @@ void IRCConnection::whoReply (str data, const list<str>& tokens) {
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-void IRCConnection::nonNumericResponse (const str& data, CoStringListRef tokens) {
+void IRCConnection::nonNumericResponse (CoStringRef data, CoStringListRef tokens) {
 	str usermask = tokens[0].substr (1, tokens[0].length());
 	str codestring = +tokens[1];
 	str nick, user, host;
@@ -308,7 +304,6 @@ void IRCConnection::nonNumericResponse (const str& data, CoStringListRef tokens)
 		else
 			write (fmt ("WHO %1", nick));
 	} elif (codestring == "PRIVMSG") {
-		print ("it's a privmsg!\n");
 		str target = tokens[2];
 		IRCChannel* chan = findChannel (tokens[2]);  // if null, this is PM
 		str message = data.substr (posof (data, 3) + 2);
@@ -352,18 +347,14 @@ void IRCConnection::nonNumericResponse (const str& data, CoStringListRef tokens)
 		}
 		
 		// Try see if the message contained a Zandronum tracker link
-		str url = tracker_url;
-		
 		for (CoStringRef tok : msgargs) {
 			if (
-				(tok.startsWith ("http://" + url) || tok.startsWith ("https://" + url)) &&
+				(tok.startsWith ("http://" + tracker_url) || tok.startsWith ("https://" + tracker_url)) &&
 				tok.first ("view.php?id=") != -1
 			) {
 				// Twist the ID string a bit to flush out unwanted characters (punctuation, etc)
 				str idstr = tok.substr (tok.first ("?id=") + 4);
-				print ("idstring: %1\n", idstr);
 				str idstr2 = str::fromNumber (idstr.toLong());
-				print ("idstring 2: %1\n", idstr2);
 				
 				str val;
 				
@@ -372,7 +363,6 @@ void IRCConnection::nonNumericResponse (const str& data, CoStringListRef tokens)
 			}
 		}
 		
-		print ("message: %1\nmessage[0]: %1\n", message, message[0]);
 		if (message[0] == irc_commandprefix[0]) {
 			str cmdname = msgargs[0].substr (1);
 			

@@ -27,7 +27,7 @@ public:
 private:
 	void namesResponse (CoStringListRef tokens);
 	void whoReply (str data, const CoStringListRef tokens);
-	void nonNumericResponse (const str& data, CoStringListRef tokens);
+	void nonNumericResponse (CoStringRef data, CoStringListRef tokens);
 	IRCUser* newUser (str nick);
 	
 	CoList<IRCChannel*> m_channels;
