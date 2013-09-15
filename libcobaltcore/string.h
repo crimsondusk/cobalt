@@ -8,9 +8,10 @@
 #include "containers.h"
 
 class CoString;
-typedef CoString str;
+typedef CoString str; // TODO: move this out of the lib
 typedef CoList<CoString> CoStringList;
 typedef const CoString& CoStringRef;
+typedef const CoStringList& CoStringListRef;
 
 class CoString {
 public:
@@ -36,7 +37,7 @@ public:
 	CoStringList split (char del) const;
 	bool         startsWith (const CoString& other) const;
 	CoString     strip (std::initializer_list<char> unwanted);
-	CoString     substr (int a, int b) const;
+	CoString     substr (int a, int b = -1) const;
 	double       toDouble (bool* ok = null) const;
 	float        toFloat (bool* ok = null) const;
 	long         toLong (bool* ok = null, int base = 10) const;
@@ -60,6 +61,7 @@ public:
 	inline int           length() const { return m_string.length(); }
 	inline int           maxSize() const { return m_string.max_size(); }
 	inline void          resize (int n) { m_string.resize (n); }
+	inline void          remove (int pos, int n) { m_string.replace (pos, n, ""); }
 	inline void          shrinkToFit() { m_string.shrink_to_fit(); }
 	inline StringTypeRef stdstring() const { return m_string; };
 	inline CoString      strip (char unwanted) { return strip ({unwanted}); }

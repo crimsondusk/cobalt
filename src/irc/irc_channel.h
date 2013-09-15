@@ -1,7 +1,7 @@
 #ifndef COBALT_IRC_CHANNEL_H
 #define COBALT_IRC_CHANNEL_H
 
-#include <QTime>
+#include <libcobaltcore/time.h>
 #include "irc.h"
 
 class IRCUser;
@@ -98,21 +98,15 @@ public:
 	// -------------------------------------------------------------------------
 	PROPERTY (str, name, setName)
 	PROPERTY (str, topic, setTopic)
-	READ_PROPERTY (QTime, joinTime, setJoinTime)
+	READ_PROPERTY (CoTime, joinTime, setJoinTime)
 	
 public:
-	typedef vector<Entry>::it it;
-	typedef vector<Entry>::c_it c_it;
 	typedef ChannelModeInfo modeinfo;
 	
 	IRCChannel (str name);
 	
 	Entry*        addUser (IRCUser* info);
-	void          applyModeString (String substr);
-	it            begin();
-	c_it          begin() const;
-	it            end();
-	c_it          end() const;
+	void          applyModeString (CoString substr);
 	void          delUser (IRCUser* info);
 	Entry*        findUser (str name);
 	Entry*        findUser (IRCUser* info);
@@ -126,12 +120,16 @@ public:
 	static long   getStatusFlag (char c);
 	static str    statusname (long mode);
 	
+	inline const CoList<Entry>& userlist() const {
+		return m_userlist;
+	}
+	
 private:
-	QList<Entry> m_userlist;
-	QList<Mode>  m_modes;
-	QList<str>   m_banlist,
-	             m_whitelist,
-	             m_invitelist;
+	CoList<Entry> m_userlist;
+	CoList<Mode>  m_modes;
+	CoList<str>   m_banlist,
+	              m_whitelist,
+	              m_invitelist;
 };
 
 #endif // COBALT_IRC_CHANNEL_H

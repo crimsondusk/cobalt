@@ -101,8 +101,7 @@ void CoTCPSocket::tick() {
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-long CoTCPSocket::write (initlist<CoVariant> args) {
-	str msg = DoFormat (args);
+long CoTCPSocket::write (CoString msg) {
 	msg += '\n';
 	
 	if (verbose())

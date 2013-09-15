@@ -37,13 +37,12 @@ namespace IRC {
 }
 
 // =============================================================================
-// IRC command macros
 #define IRC_COMMAND_PARMS \
 	IRCConnection* conn, \
 	IRCUser* invoker, \
 	IRCChannel* channel, \
-	str message, \
-	QStringList parms
+	CoString message, \
+	CoStringList parms
 
 #define IRC_COMMAND(X) \
 void IRCCommand_##X (IRC_COMMAND_PARMS); \
@@ -58,7 +57,7 @@ struct IRCCommandInfo {
 };
 
 // List of all commands we have defined + pointers to them
-extern QList<IRCCommandInfo> g_IRCCommands;
+extern CoList<IRCCommandInfo> g_IRCCommands;
 
 // This class adds an IRC command to g_IRCCommands
 class IRCCommandAdder {

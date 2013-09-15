@@ -17,12 +17,9 @@ add_executable (cobalt
 	irc/irc_user.cpp
 	soap/soapC.c
 	soap/soapClient.c
-	3rdparty/md5.cpp
 	3rdparty/huffman.cpp
 	cobalt.cpp
-	config.cpp
 	mantisbt.cpp
-	scanner.cpp
 	utility.cpp
 	zanserver.cpp
 )

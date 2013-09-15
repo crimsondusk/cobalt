@@ -1,11 +1,10 @@
 #include "irc_channel.h"
 #include "irc_user.h"
 #include "../utility.h"
-#include <QStringList>
 
 IRCChannel::IRCChannel (str name) :
 	m_name (name),
-	m_joinTime (QTime::currentTime()) {}
+	m_joinTime (CoTime::now()) {}
 
 IRCChannel::Entry* IRCChannel::addUser (IRCUser* info) {
 	info->addKnownChannel (this);
@@ -43,22 +42,6 @@ IRCChannel::Entry* IRCChannel::findUser (IRCUser* info) {
 
 bool IRCChannel::Entry::operator== (const IRCChannel::Entry& other) const {
 	return (userinfo() == other.userinfo()) && (status() == other.status());
-}
-
-IRCChannel::it IRCChannel::begin() {
-	return m_userlist.begin();
-}
-
-IRCChannel::c_it IRCChannel::begin() const {
-	return m_userlist.begin();
-}
-
-IRCChannel::it IRCChannel::end() {
-	return m_userlist.end();
-}
-
-IRCChannel::c_it IRCChannel::end() const {
-	return m_userlist.end();
 }
 
 long IRCChannel::statusof (IRCUser* info) {
@@ -162,7 +145,7 @@ long IRCChannel::getStatusFlag (char c) {
 		'v', Voiced);
 }
 
-void IRCChannel::applyModeString (str text) {
+void IRCChannel::applyModeString (CoString substr) {
 	bool neg = false;
 	QStringList args = text.split (" ", QString::SkipEmptyParts);
 	uint argidx = 0;

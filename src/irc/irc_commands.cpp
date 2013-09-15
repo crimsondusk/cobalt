@@ -3,7 +3,6 @@
 #include "libcobaltcore/ip.h"
 #include "../main.h"
 #include "../mantisbt.h"
-#include "../3rdparty/md5.h"
 #include "../zanserver.h"
 #include "irc.h"
 #include "irc_channel.h"
@@ -12,11 +11,13 @@
 
 #define REPLY(...) conn->privmsg (TARGET, fmt (__VA_ARGS__));
 
-QList<IRCCommandInfo> g_IRCCommands;
+EXTERN_CONFIG (String, tracker_url)
+
+static CoList<IRCCommandInfo> G_IRCCommands;
 
 IRCCommandAdder::IRCCommandAdder (const char* namestring, IRCCommandType func) {
 	const IRCCommandInfo info = {namestring, func};
-	g_IRCCommands << info;
+	G_IRCCommands << info;
 }
 
 str IRCTarget (IRCUser* sender, IRCChannel* chan) {
@@ -39,21 +40,21 @@ IRC_COMMAND (sayhi) {
 // =============================================================================
 IRC_COMMAND (quit) {
 	if (!invoker->isAdmin()) {
-		conn->privmsg (TARGET, fmt ("%1: Who are you to tell me to GTFO?", invoker->nick()));
+		REPLY ("%1: Who are you to tell me to GTFO?", invoker->nick())
 		return;
 	}
-
-	conn->privmsg (TARGET, "Bye.");
+	
+	REPLY ("Bye.")
 	conn->write ({ "QUIT :Leaving" });
 }
 
 // =============================================================================
 IRC_COMMAND (raw) {
 	if (!invoker->isAdmin()) {
-		conn->write ({"PRIVMSG %1 :%2: Who are you to tell me what to do?", TARGET, invoker->nick() });
+		REPLY ("Who are you to tell me what to do?")
 		return;
 	}
-
+	
 	int space = message.first (" ");
 	str raw = message.substr (space + 1, -1);
 	conn->write ({ "%1\n", raw });
@@ -67,7 +68,7 @@ IRC_COMMAND (ban) {
 		return;
 	
 	if (parms.size() < 2) {
-		conn->write ({ "PRIVMSG %1 :need a mask", TARGET });
+		REPLY ("Need a mask")
 		return;
 	}
 	
@@ -87,39 +88,39 @@ IRC_COMMAND (testfatal) {
 }
 
 IRC_COMMAND (time) {
-	conn->privmsg (TARGET, fmt ("Now is %1", Date (Time::now())));
+	conn->privmsg (TARGET, fmt ("Now is %1", CoDate (CoTime::now())));
 }
 
-Stopwatch g_stopwatch;
+CoStopwatch g_stopwatch;
 IRC_COMMAND (sw_start) {
 	g_stopwatch.start();
-	conn->privmsg (TARGET, "Stopwatch started.");
+	REPLY ("Stopwatch started.")
 }
 
 IRC_COMMAND (sw_stop) {
 	g_stopwatch.stop();
-	conn->privmsg (TARGET, fmt ("Stopwatch stopped, lapsed time: %1", g_stopwatch.elapsed()));
+	REPLY ("Stopwatch stopped, lapsed time: %1", g_stopwatch.elapsed())
 }
 
 IRC_COMMAND (whois) {
 	if (parms.size() < 2) {
-		conn->privmsg (TARGET, "Who is... who?");
+		REPLY ("Who is... who?")
 		return;
 	}
 	
 	IRCUser* user = conn->findUser (parms[1]);
 	
 	if (user == null) {
-		conn->privmsg (TARGET, "I don't know who that is.");
+		REPLY ("I don't know who that is.")
 		return;
 	}
 	
-	list<str> channames;
+	CoStringList channames;
 	for (IRCChannel * chan : user->channels())
 		channames << chan->name();
 	
-	conn->privmsg (TARGET, fmt ("I think %1 is %2. Real name: %3", user->nick(), user->userhost(), user->name()));
-	conn->privmsg (TARGET, fmt ("I see %1 on %2", user->nick(), join (channames, ", ")));
+	REPLY ("I think %1 is %2. Real name: %3", user->nick(), user->userhost(), user->name())
+	REPLY ("I see %1 on %2", user->nick(), join (channames, ", "))
 }
 
 IRC_COMMAND (ticket) {
@@ -131,27 +132,27 @@ IRC_COMMAND (ticket) {
 	if (atoi (parms[1]) <= 0)
 		return;
 	
-	str idstr = var (atoi (parms[1])).stringRep();
+	str idstr = CoString::fromNumber (parms[1].toLong());
 	str msg;
 	bool success = ticketinfo (idstr, msg);
 	
 	if (success) {
-		conn->privmsg (TARGET, msg);
-		conn->privmsg (TARGET, fmt ("Link: %1view.php?id=%2", cfg (Name::TrackerURL), idstr));
+		REPLY (msg)
+		REPLY ("Link: %1view.php?id=%2", tracker_url, idstr)
 	} else
-		conn->privmsg (TARGET, msg);
+		REPLY (msg)
 }
 
 IRC_COMMAND (fullticketinfo) {
 	if (parms.size() < 2) {
-		conn->privmsg (TARGET, "Which ticket?");
+		REPLY ("Which ticket?")
 		return;
 	}
 	
 	if (atoi (parms[1]) <= 0)
 		return;
 	
-	str idstr = var (atoi (parms[1])).stringRep();
+	str idstr = str::fromNumber (parms[1].toLong());
 	str msg = fullticketinfo (idstr);
 	
 	for (const str& line : msg.split ("\n"))
@@ -159,11 +160,11 @@ IRC_COMMAND (fullticketinfo) {
 }
 
 IRC_COMMAND (commands) {
-	list<str> cmdnames;
-
-	for (const IRCCommandInfo& info : g_IRCCommands)
+	CoStringList cmdnames;
+	
+	for (const IRCCommandInfo& info : G_IRCCommands)
 		cmdnames << info.namestring;
-
+	
 	cmdnames.sort();
 	conn->privmsg (TARGET, fmt ("Available commands: %1", join (cmdnames, " ")));
 }
@@ -172,18 +173,20 @@ IRC_COMMAND (msg) {
 	if (!invoker->isAdmin() || parms.size() < 3)
 		return;
 
-	list<str> msgparms = parms;
+	CoStringList msgparms = parms;
 	msgparms.erase (0);
 	msgparms.erase (0);
 	str msg = join (msgparms, " ");
 	conn->privmsg (parms[1], msg);
 }
 
+#if 0
 IRC_COMMAND (md5) {
 	int space = message.first (" ");
 	str raw = (space != -1) ? message.substr (space + 1, -1) : "";
 	conn->privmsg (TARGET, fmt ("Digest of '%1' is: %2", raw, md5 (raw)));
 }
+#endif // 0
 
 IRC_COMMAND (query) {
 	IPAddress addr;
@@ -193,8 +196,8 @@ IRC_COMMAND (query) {
 		return;
 	}
 	
-	if (!IPAddress::fromString (parms[1], addr)) {
-		conn->privmsg (TARGET, "Bad IP address!");
+	if (!CoIPAddress::fromString (parms[1], addr)) {
+		REPLY ("Bad IP address!")
 		return;
 	}
 	
@@ -208,10 +211,10 @@ IRC_COMMAND (resolve) {
 	IPAddress addr;
 
 	REPLY ("Resolving %1...", parms[1]);
-	int r = IPAddress::resolve (parms[1], addr);
+	int r = CoIPAddress::resolve (parms[1], addr);
 
 	if (r != 0)
-		REPLY ("Failed to resolve: %1", str (gai_strerror (r)))
+		REPLY ("Failed to resolve: %1", CoString (gai_strerror (r)))
 	else
 		REPLY ("address: %1", addr)
 }
@@ -227,18 +230,18 @@ IRC_COMMAND (masshighlight) {
 	
 	str nicklist;
 	for (IRCChannel::Entry& e : *channel) {
-		if (nicklist.len() > 0)
+		if (nicklist.length() > 0)
 			nicklist += ", ";
 		
 		nicklist += e.userinfo()->nick();
 		
-		if (nicklist.len() > 300) {
+		if (nicklist.length() > 300) {
 			REPLY ("%1", nicklist);
 			nicklist = "";
 		}
 	}
 	
-	if (nicklist.len() > 0)
+	if (nicklist.length() > 0)
 		REPLY ("%1", nicklist);
 }
 

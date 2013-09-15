@@ -4,7 +4,7 @@
 #include "utility.h"
 #include "irc/irc.h"
 
-EXTERN_CONFIG (String, tracker_url)
+CONFIG (String, tracker_url, "zandronum.com/tracker")
 CONFIG (String, tracker_account, "")
 CONFIG (String, tracker_password, "")
 

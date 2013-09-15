@@ -1,10 +1,7 @@
-#include <QTcpSocket>
-#include <QStringList>
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/time.h>
 #include "../main.h"
-#include "../config.h"
 #include "../utility.h"
 #include "../mantisbt.h"
 #include "irc.h"
@@ -12,21 +9,27 @@
 #include "irc_user.h"
 #include "irc_channel.h"
 
-CONFIG (String, channel, "#null-object")
-CONFIG (String, usermodes, "+iw")
-CONFIG (String, nickname, "cobalt")
-CONFIG (String, username, "cobalt")
-CONFIG (String, realname, "cobalt")
-CONFIG (String, password, "w3b0tt1ngn0w")
-CONFIG (String, trackerurl, "zandronum.com/tracker")
+CONFIG (String, irc_channel, "#null-object")
+CONFIG (String, irc_usermodes, "+iw")
+CONFIG (String, irc_nickname, "cobalt")
+CONFIG (String, irc_username, "cobalt")
+CONFIG (String, irc_realname, "cobalt")
+CONFIG (String, irc_password, "")
+CONFIG (String, irc_chan_ownersymbol, "~")
+CONFIG (String, irc_chan_adminsymbol, "&")
+CONFIG (String, irc_chan_opsymbol, "@")
+CONFIG (String, irc_chan_halfopsymbol, "%")
+CONFIG (String, irc_chan_voicesymbol, "+")
+CONFIG (String, irc_commandprefix, "&")
+EXTERN_CONFIG (String, tracker_url)
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 IRCConnection::IRCConnection (str node, uint16 port) :
-	m_loggedIn (false),
-	m_conn (new QTcpSocket)
+	CoTCPSocket (node, port),
+	m_loggedIn (false)
 {
-	m_conn->connectToHost (node, port);
+	setBlocking (false);
 }
 
 // =============================================================================
@@ -36,14 +39,16 @@ void IRCConnection::privmsg (str target, str msg) {
 	IRCChannel* chan = findChannel (target);
 	
 	if (chan && chan->getMode (ChanMode_BlockColors)) {
-		msg.remove ('\002');
-		msg.remove ('\x0F');
+		msg.replace ("\002", "");
+		msg.replace ("\x0F", "");
 		
 		// Strip the color codes. This assumes the colors are always 5 characters, though..
+		/*
 		long code;
 		
-		while ((code = msg.indexOf ("\003")) != -1)
-			msg.remove (code, 5);
+		while ((code = msg.first ("\003")) != -1)
+			msg = msg.substr (0, code) + msg.substr (code + 5, -1);
+		*/
 	}
 	
 	// Encode \r and \n for the sake of security.
@@ -55,33 +60,25 @@ void IRCConnection::privmsg (str target, str msg) {
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-void IRCConnection::write (const str& msg) {
-	m_conn->write (msg, msg.length());
-}
-
-// =============================================================================
-// -----------------------------------------------------------------------------
 void IRCConnection::incoming (str data) {
 	// If we haven't authed yet, do so.
 	if (!authed) {
-		write (fmt ("USER %1 0 * :%2", cfg::username, cfg::realname));
-		write (fmt ("NICK cobalt", cfg::nickname));
+		write (fmt ("USER %1 0 * :%2", irc_username, irc_realname));
+		write (fmt ("NICK cobalt", irc_nickname));
 		
-		str ircpass = cfg::password;
+		if (irc_password.length() > 0)
+			write (fmt ("PASS %1", irc_password));
 		
-		if (ircpass != "")
-			write (fmt ("PASS %1", ircpass));
-		
-		setCurrentNickname (cfg::nickname);
+		setCurrentNickname (irc_nickname);
 		authed = true;
 	}
 	
 	// Remove crap off the message.
-	data.remove (QChar (17));
-	data.remove ('\r');
+	data.replace ("\x11", "");
+	data.replace ("\r", "");
 	
 	// Deliminate it
-	QStringList tokens = data.split (" ", QString::SkipEmptyParts);
+	CoStringList tokens = data.split (" ");
 	
 	if (tokens.size() == 0)
 		return;
@@ -94,11 +91,11 @@ void IRCConnection::incoming (str data) {
 	
 	// =========================================================================
 	// NUMERIC CODES
-	switch (tokens[1].toInt()) {
+	switch (tokens[1].toLong()) {
 	case RPL_WELCOME:
 		// Server accepted us, tell it that we're joining
-		write (fmt ("JOIN %1", cfg::channel));
-		write (fmt ("MODE %1 %2", currentNickname(), cfg::usermodes));
+		write (fmt ("JOIN %1", irc_channel));
+		write (fmt ("MODE %1 %2", currentNickname(), irc_usermodes));
 		
 		setLoggedIn (true);
 		break;
@@ -117,7 +114,7 @@ void IRCConnection::incoming (str data) {
 	
 	case RPL_ENDOFNAMES:
 		// Request information about this channel's users
-		write ({ "WHO %1", tokens[3] });
+		write (fmt ("WHO %1", tokens[3]));
 		namesdone = true;
 		break;
 	
@@ -127,7 +124,7 @@ void IRCConnection::incoming (str data) {
 	
 	case ERR_NICKNAMEINUSE:
 		setCurrentNickname (currentNickname() + "_");
-		write ({ "NICK :%1", currentNickname() });
+		write (fmt ("NICK :%1", currentNickname()));
 		break;
 	
 	case RPL_CHANNELMODEIS:
@@ -137,10 +134,10 @@ void IRCConnection::incoming (str data) {
 			if (!chan)
 				break;
 			
-			QStringList modelist;
+			CoStringList modelist;
 			for (int i = 4; i < tokens.size(); ++i)
-				modelist += tokens[i];
-			chan->applyModeString (modelist.join (" "));
+				modelist << tokens[i];
+			chan->applyModeString (join (modelist, " "));
 		}
 		break;
 	
@@ -152,9 +149,8 @@ void IRCConnection::incoming (str data) {
 			if (user)
 				user->setAccount (acc);
 		}
-		
 		break;
-
+	
 	case 0:
 		nonNumericResponse (data, tokens);
 		break;
@@ -173,7 +169,7 @@ IRCChannel* IRCConnection::findChannel (str name) {
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-void IRCConnection::namesResponse (const QStringList& tokens) {
+void IRCConnection::namesResponse (CoStringListRef tokens) {
 	IRCChannel* chan = findChannel (tokens[4]);
 	
 	if (!chan)
@@ -196,11 +192,11 @@ void IRCConnection::namesResponse (const QStringList& tokens) {
 		
 		for (j = 0; j < nick.length(); j++) {
 			long flag = valueMap<long> (nick[j], IRCChannel::Normal, 5,
-				cfg (Name::OpSymbol) [0],      IRCChannel::Op,
-				cfg (Name::HalfOpSymbol) [0],  IRCChannel::HalfOp,
-				cfg (Name::VoiceSymbol) [0],   IRCChannel::Voiced,
-				cfg (Name::ProtectSymbol) [0], IRCChannel::Admin,
-				cfg (Name::OwnerSymbol) [0],   IRCChannel::Owner);
+				irc_chan_opsymbol[0],      IRCChannel::Op,
+				irc_chan_halfopsymbol[0],  IRCChannel::HalfOp,
+				irc_chan_voicesymbol[0],   IRCChannel::Voiced,
+				irc_chan_adminsymbol[0],   IRCChannel::Admin,
+				irc_chan_ownersymbol[0],   IRCChannel::Owner);
 			
 			if (flag)
 				statusflags |= flag;
@@ -210,7 +206,7 @@ void IRCConnection::namesResponse (const QStringList& tokens) {
 		
 		// Remove the status symbol from the name now that
 		// we have identified it.
-		nick = nick.mid (j);
+		nick = nick.substr (j, -1);
 		
 		// If we don't already have him listed, create an entry.
 		IRCUser* info = getUser (nick);
@@ -234,7 +230,7 @@ void IRCConnection::whoReply (str data, const list<str>& tokens) {
 	str server = tokens[6];
 	str nick = tokens[7];
 	str flags = tokens[8];
-	str name = data.mid (posof (data, 10) + 1);
+	str name = data.substr (posof (data, 10) + 1, -1);
 
 	// Get the meta object
 	IRCUser* info = getUser (nick);
@@ -267,18 +263,18 @@ void IRCConnection::whoReply (str data, const list<str>& tokens) {
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-void IRCConnection::nonNumericResponse (const str& data, const list<str>& tokens) {
-	str usermask = tokens[0].substr (1, tokens[0].len());
+void IRCConnection::nonNumericResponse (const str& data, CoStringListRef tokens) {
+	str usermask = tokens[0].substr (1, tokens[0].length());
 	str codestring = +tokens[1];
 	str nick, user, host;
-	int excl = usermask.indexOf ("!"),
-		atsign = usermask.indexOf ("@");
+	int excl = usermask.first ("!"),
+		atsign = usermask.first ("@");
 	
 	if (~excl && ~atsign)
-		nick = usermask.left (excl);
+		nick = usermask.substr (0, excl);
 	
-	user = usermask.mid (excl + 1, usermask.length() - atsign);
-	host = usermask.mid (atsign + 1);
+	user = usermask.substr (excl + 1, atsign);
+	host = usermask.substr (atsign + 1);
 	
 	// Try find meta for this user
 	IRCUser* info = findUser (nick);
@@ -291,7 +287,7 @@ void IRCConnection::nonNumericResponse (const str& data, const list<str>& tokens
 		if (!info)
 			info = getUser (nick);
 		
-		IRCChannel* chan = getChannel (tokens[2].mid (1));
+		IRCChannel* chan = getChannel (tokens[2].substr (1));
 		chan->addUser (info);
 		
 		// Fill in the user and host
@@ -305,20 +301,23 @@ void IRCConnection::nonNumericResponse (const str& data, const list<str>& tokens
 		if (nick == currentNickname())
 			setMe (info);
 		else
-			write ({ "WHO %1", nick });
+			write (fmt ("WHO %1", nick));
 	} elif (codestring == "PRIVMSG") {
 		str target = tokens[2];
 		IRCChannel* chan = findChannel (tokens[2]);  // if null, this is PM
-		str message = data.mid (posof (data, 3) + 2);
+		str message = data.substr (posof (data, 3) + 2);
 		
+		// [TODO] Is this still needed?
+		/*
 		if (chan && chan->joinTime().secsTo (QTime::currentTime()) < 1)
 			return;
+		*/
 		
 		// Rid the initial :
 		if (message[0] == ':')
 			message -= -1;
 		
-		QStringList msgargs = message.split (" ");
+		CoStringList msgargs = message.split (" ");
 		IRCUser* ircuser = getUser (nick);
 		
 		// ========================
@@ -326,7 +325,7 @@ void IRCConnection::nonNumericResponse (const str& data, const list<str>& tokens
 		if (message[0] == '\001') {
 			str ctcpcode = + (msgargs[0].substr (1, -1));
 			
-			if (ctcpcode[ctcpcode.len() - 1] == 1)
+			if (ctcpcode[ctcpcode.length() - 1] == 1)
 				ctcpcode -= 1;
 			
 			// Let's assume that the \001 is the last character in the message,
@@ -336,28 +335,28 @@ void IRCConnection::nonNumericResponse (const str& data, const list<str>& tokens
 			str ctcpargs = message.substr (ctcpargidx, message.last ("\1"));
 			
 			if (ctcpcode == "VERSION")
-				write ({ "NOTICE %1 :\001VERSION %2 %3.%4\001",
-					 nick, APPNAME, VERSION_MAJOR, VERSION_MINOR});
+				write (fmt ("NOTICE %1 :\001VERSION %2 %3.%4\001",
+					 nick, APPNAME, VERSION_MAJOR, VERSION_MINOR));
 			elif (ctcpcode == "PING")
-			write ({ "NOTICE %1 :\001PING %2\001", nick, ctcpargs });
+				write (fmt ("NOTICE %1 :\001PING %2\001", nick, ctcpargs));
 			elif (ctcpcode == "TIME")
-			write ({ "NOTICE %1 :\001TIME %2\001", nick, Date (Time::now()) });
-
+				write (fmt ("NOTICE %1 :\001TIME %2\001", nick, CoDate (CoTime::now())));
+			
 			return;
 		}
-
-		// Try see if the message contained a Zandronum tracker link
-		str url = cfg::trackerurl;
 		
-		for (const str& tok : msgargs) {
+		// Try see if the message contained a Zandronum tracker link
+		str url = tracker_url;
+		
+		for (CoStringRef tok : msgargs) {
 			if (
 				(tok.startsWith ("http://" + url) || tok.startsWith ("https://" + url)) &&
-				tok.indexOf ("view.php?id=") != -1
+				tok.first ("view.php?id=") != -1
 			) {
 				// Twist the ID string a bit to flush out unwanted characters (punctuation, etc)
-				str idstr = tok.mid (tok.indexOf ("?id=") + 4, -1);
+				str idstr = tok.substr (tok.first ("?id=") + 4);
 				print ("idstring: %1\n", idstr);
-				str idstr2 = str::number (idstr.toInt());
+				str idstr2 = str::fromNumber (idstr.toLong());
 				print ("idstring 2: %1\n", idstr2);
 				
 				str val;
@@ -367,12 +366,12 @@ void IRCConnection::nonNumericResponse (const str& data, const list<str>& tokens
 			}
 		}
 		
-		if (message[0] == cfg (Name::IRCCommandPrefix) [0]) {
-			str cmdname = msgargs[0].mid (1);
+		if (message[0] == irc_commandprefix[0]) {
+			str cmdname = msgargs[0].substr (1);
 			
 			// Paranoia
 			if (ircuser == null) {
-				write ( {"PRIVMSG %1 :Who are you, %2?", target, nick});
+				write (fmt ("PRIVMSG %1 :Who are you, %2?", target, nick));
 				return;
 			}
 			
@@ -385,9 +384,8 @@ void IRCConnection::nonNumericResponse (const str& data, const list<str>& tokens
 				}
 			}
 			
-			write ( { "PRIVMSG %1 :Unknown command `%2%3`!",
-					  target, cfg (Name::IRCCommandPrefix) [0], cmdname
-					});
+			write (fmt ("PRIVMSG %1 :Unknown command `%2%3`!",
+					target, irc_commandprefix[0], cmdname));
 			return;
 		}
 	} elif (codestring == "PART") {
@@ -406,15 +404,15 @@ void IRCConnection::nonNumericResponse (const str& data, const list<str>& tokens
 		delUser (nick);
 		
 		// If it was our nickname, reclaim it now
-		if (+nick == +cfg::nickname) {
-			write (fmt ("NICK :%1", cfg::nickname));
-			setCurrentNickname (cfg::nickname);
+		if (+nick == +irc_nickname) {
+			write (fmt ("NICK :%1", irc_nickname));
+			setCurrentNickname (irc_nickname);
 		}
 	} elif (codestring == "MODE") {
 		IRCChannel* chan = findChannel (tokens[2]);
 		
 		if (chan)
-			chan->applyModeString (data.mid (posof (data, 3) + 1));
+			chan->applyModeString (data.substr (posof (data, 3) + 1));
 	} elif (codestring == "NICK") {
 		// User changed his nickname, update his meta.
 		str newnick = tokens[2];

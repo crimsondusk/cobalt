@@ -3,6 +3,7 @@
 
 #include "irc.h"
 #include "irc_channel.h"
+#include <libcobaltcore/flags.h>
 
 class IRCUser {
 public:
@@ -12,7 +13,7 @@ public:
 		IRCOp    = (1 << 2),    // is an IRC Op
 	};
 	
-	Q_DECLARE_FLAGS (Flags, Flag)
+	typedef CoFlags<Flag> Flags;
 	
 	PROPERTY (str, nick, setNick)
 	PROPERTY (str, user, setUser)
@@ -21,7 +22,7 @@ public:
 	PROPERTY (str, server, setServer)
 	PROPERTY (str, account, setAccount)
 	PROPERTY (Flags, flags, setFlags)
-	READ_PROPERTY (QList<IRCChannel*>, channels, setChannels)
+	READ_PROPERTY (CoList<IRCChannel*>, channels, setChannels)
 	
 public:
 	IRCUser() :

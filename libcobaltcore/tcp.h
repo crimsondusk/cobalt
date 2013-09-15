@@ -11,7 +11,7 @@ class CoTCPSocket {
 public:
 	CoTCPSocket (str node, uint port);
 	bool init (uint16 port);
-	long write (std::initializer_list<CoVariant> args);
+	long write (CoString msg);
 	void privmsgf (const char* target, const char* fmt, ...);
 	void tick();
 	

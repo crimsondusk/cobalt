@@ -2,6 +2,8 @@
 #include "irc_user.h"
 #include "irc_channel.h"
 
+CONFIG (StringList, irc_adminmasks, CoStringList())
+
 // =============================================================================
 // Determine status level of this user.
 // -----------------------------------------------------------------------------
@@ -19,11 +21,9 @@ void IRCUser::checkAdmin() {
 	str uhost = userhost();
 	bool admin = false;
 	
-/*
-	for (int i = 0; i < g_AdminMasks.size() && !admin; i++)
-		if (mask (uhost, g_AdminMasks[i]))
+	for (int i = 0; i < irc_adminmasks.size() && !admin; i++)
+		if (mask (uhost, irc_adminmasks[i]))
 			admin = true;
-*/
 	
 	if (admin)
 		*this |= Admin;
@@ -39,7 +39,7 @@ str IRCUser::userhost() const {
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-Flags IRCUser::operator| (Flags f) const {
+IRCUser::Flags IRCUser::operator| (Flags f) const {
 	return flags() | f;
 }
 
@@ -52,7 +52,7 @@ IRCUser IRCUser::operator|= (Flags f) {
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-Flags IRCUser::operator& (Flags f) const {
+IRCUser::Flags IRCUser::operator& (Flags f) const {
 	return flags() & f;
 }
 
@@ -65,7 +65,7 @@ IRCUser IRCUser::operator&= (Flags f) {
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-Flags IRCUser::operator^ (Flags f) const {
+IRCUser::Flags IRCUser::operator^ (Flags f) const {
 	return flags() ^ f;
 }
 
