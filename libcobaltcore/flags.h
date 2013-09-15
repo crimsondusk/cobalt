@@ -55,6 +55,10 @@ public:
 		return !operator== (other);
 	}
 	
+	inline operator bool() const {
+		return m_value != 0;
+	}
+	
 private:
 	int m_value;
 };

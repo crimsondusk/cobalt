@@ -12,7 +12,7 @@
 extern const CoStringList gamestrings;
 
 void tickServerRequests();
-void addServerQuery (IPAddress addr, str target);
+void addServerQuery (CoIPAddress addr, str target);
 
 // =============================================================================
 // -----------------------------------------------------------------------------
@@ -67,15 +67,15 @@ public:
 		TeamInfoColor        = (1 << 0x17),
 		TeamInfoScore        = (1 << 0x18),
 		TestingServer        = (1 << 0x19),
-		DataMD5Sum           = (1 << 0x20),
-		AllDMFlags           = (1 << 0x21),
-		SecuritySettings     = (1 << 0x22),
+		DataMD5Sum           = (1 << 0x1A),
+		AllDMFlags           = (1 << 0x1B),
+		SecuritySettings     = (1 << 0x1C),
 	};
 
 	LauncherRequest();
 	void update();
 	void query();
-	void incoming (const Bytestream& data, IPAddress addr);
+	void incoming (const CoBytestream& encoded, CoIPAddress addr);
 };
 
 namespace ZandronumProtocol {

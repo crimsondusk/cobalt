@@ -145,14 +145,14 @@ long IRCChannel::getStatusFlag (char c) {
 		'v', Voiced);
 }
 
-void IRCChannel::applyModeString (CoString substr) {
+void IRCChannel::applyModeString (CoStringRef text) {
 	bool neg = false;
-	QStringList args = text.split (" ", QString::SkipEmptyParts);
+	CoStringList args = text.split (" ");
 	uint argidx = 0;
 	str modestring = args[0];
 	args.erase (0);
 	
-	for (const QChar& c : modestring) {
+	for (char c : modestring) {
 		if (c == '+') {
 			// +abc
 			neg = false;
@@ -224,7 +224,7 @@ void IRCChannel::applyModeString (CoString substr) {
 
 str IRCChannel::modeString() const {
 	str modestring;
-	QList<str> args;
+	CoStringList args;
 	
 	for (const Mode& mode : m_modes) {
 		modestring += mode.info->c;

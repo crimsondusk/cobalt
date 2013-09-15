@@ -106,7 +106,7 @@ public:
 	IRCChannel (str name);
 	
 	Entry*        addUser (IRCUser* info);
-	void          applyModeString (CoString substr);
+	void          applyModeString (CoStringRef text);
 	void          delUser (IRCUser* info);
 	Entry*        findUser (str name);
 	Entry*        findUser (IRCUser* info);

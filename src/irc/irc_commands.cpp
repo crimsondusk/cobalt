@@ -57,7 +57,7 @@ IRC_COMMAND (raw) {
 	
 	int space = message.first (" ");
 	str raw = message.substr (space + 1, -1);
-	conn->write ({ "%1\n", raw });
+	conn->write (fmt ("%1\n", raw));
 }
 
 IRC_COMMAND (ban) {
@@ -72,11 +72,11 @@ IRC_COMMAND (ban) {
 		return;
 	}
 	
-	conn->write ({ "MODE %1 +b %2\n", TARGET, parms[1] });
+	conn->write (fmt ("MODE %1 +b %2\n", TARGET, parms[1]));
 	
 	for (IRCUser* user : conn->users)
 		if (mask (user->userhost(), parms[1]))
-			conn->write ({ "KICK %1 %2 :Banned", TARGET, user->nick() });
+			conn->write (fmt ("KICK %1 %2 :Banned", TARGET, user->nick()));
 }
 
 IRC_COMMAND (testfatal) {
@@ -189,7 +189,7 @@ IRC_COMMAND (md5) {
 #endif // 0
 
 IRC_COMMAND (query) {
-	IPAddress addr;
+	CoIPAddress addr;
 	
 	if (parms.size() < 2) {
 		conn->privmsg (TARGET, "What shall I query?");
@@ -208,7 +208,7 @@ IRC_COMMAND (resolve) {
 	if (parms.size() < 2)
 		return;
 	
-	IPAddress addr;
+	CoIPAddress addr;
 
 	REPLY ("Resolving %1...", parms[1]);
 	int r = CoIPAddress::resolve (parms[1], addr);
@@ -229,7 +229,7 @@ IRC_COMMAND (masshighlight) {
 	}
 	
 	str nicklist;
-	for (IRCChannel::Entry& e : *channel) {
+	for (const IRCChannel::Entry& e : channel->userlist()) {
 		if (nicklist.length() > 0)
 			nicklist += ", ";
 		

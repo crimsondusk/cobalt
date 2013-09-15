@@ -12,7 +12,7 @@
 #include "3rdparty/huffman.h"
 
 extern IRCConnection* g_IRCConnection;
-static list<LauncherRequest*> g_serverRequests;
+static CoList<LauncherRequest*> g_serverRequests;
 
 // =============================================================================
 // -----------------------------------------------------------------------------
@@ -32,13 +32,13 @@ void LauncherRequest::query() {
 
 	launch (encoded, address());
 
-	setNextRequest (Time::now() + 1);
+	setNextRequest (CoTime::now() + 1);
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 void LauncherRequest::update() {
-	Time now = Time::now();
+	CoTime now = CoTime::now();
 
 	if (now > deadline()) {
 		m_info.state = TimedOut;
@@ -54,16 +54,16 @@ void LauncherRequest::update() {
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-void LauncherRequest::incoming (const Bytestream& encoded, IPAddress addr) {
+void LauncherRequest::incoming (const CoBytestream& encoded, CoIPAddress addr) {
 	int len;
 	int32 header, flags;
 	str sval;
 	int32 sink;
 	
 	HUFFMAN_Decode (const_cast<uchar*> (reinterpret_cast<const uchar*> (encoded.data())),
-					g_huffmanBuffer, encoded.len(), &len);
+		g_huffmanBuffer, encoded.length(), &len);
 	
-	Bytestream s (reinterpret_cast<char*> (g_huffmanBuffer), len);
+	CoBytestream s (reinterpret_cast<char*> (g_huffmanBuffer), len);
 	m_info.maxclients = m_info.players = m_info.gametype = 0;
 	setDone (true);
 	
@@ -130,9 +130,9 @@ void tickServerRequests() {
 		req->update();
 		
 		if (req->done()) {
-			str target = req->payloadTarget();
+			CoString target = req->payloadTarget();
 			LauncherRequest::InfoStruct& info = req->m_info;
-			list<str> replies;
+			CoStringList replies;
 			
 			switch (req->m_info.state) {
 			case LauncherRequest::TimedOut:
@@ -172,15 +172,15 @@ void tickServerRequests() {
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-void addServerQuery (IPAddress addr, str target) {
+void addServerQuery (CoIPAddress addr, str target) {
 	LauncherRequest* req = new LauncherRequest;
 	req->setBlocking (false);
 	req->init (0);
 	req->setDone (false);
 	req->setAddress (addr);
 	req->setPayloadTarget (target);
-	req->setNextRequest (Time::now());
-	req->setDeadline (Time::now() + 5);
+	req->setNextRequest (CoTime::now());
+	req->setDeadline (CoTime::now() + 5);
 	g_serverRequests << req;
 	
 	g_IRCConnection->privmsg (target, fmt ("Querying %1...", addr));

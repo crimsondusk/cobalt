@@ -97,5 +97,5 @@ void IRCUser::delKnownChannel (IRCChannel* chan) {
 // =============================================================================
 // -----------------------------------------------------------------------------
 bool IRCUser::isAdmin() const {
-	return flags() & Admin;
+	return flags() & Flags (Admin);
 }
