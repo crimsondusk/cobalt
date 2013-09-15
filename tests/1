@@ -1,0 +1,1 @@
+test_flags: ../libcobaltcore/flags.h:12: CoFlags<T>::CoFlags(int) [with T = TestFlag]: Assertion `i == 0' failed.

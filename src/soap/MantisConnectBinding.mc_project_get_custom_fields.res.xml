@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SOAP-ENV:Envelope
+ xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"
+ xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/"
+ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+ xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+ xmlns:ns1="http://futureware.biz/mantisconnect">
+ <SOAP-ENV:Body SOAP-ENV:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
+  <ns1:mc_project_get_custom_fieldsResponse>
+   <return SOAP-ENC:arrayType="ns1:CustomFieldDefinitionData[1]">
+    <item>
+     <field>
+      <id></id>
+      <name></name>
+     </field>
+     <type></type>
+     <possible_values></possible_values>
+     <default_value></default_value>
+     <valid_regexp></valid_regexp>
+     <access_level_r></access_level_r>
+     <access_level_rw></access_level_rw>
+     <length_min></length_min>
+     <length_max></length_max>
+     <advanced>false</advanced>
+     <display_report>false</display_report>
+     <display_update>false</display_update>
+     <display_resolved>false</display_resolved>
+     <display_closed>false</display_closed>
+     <require_report>false</require_report>
+     <require_update>false</require_update>
+     <require_resolved>false</require_resolved>
+     <require_closed>false</require_closed>
+    </item>
+   
+    <item>
+     <field>
+      <id></id>
+      <name></name>
+     </field>
+     <type></type>
+     <possible_values></possible_values>
+     <default_value></default_value>
+     <valid_regexp></valid_regexp>
+     <access_level_r></access_level_r>
+     <access_level_rw></access_level_rw>
+     <length_min></length_min>
+     <length_max></length_max>
+     <advanced>false</advanced>
+     <display_report>false</display_report>
+     <display_update>false</display_update>
+     <display_resolved>false</display_resolved>
+     <display_closed>false</display_closed>
+     <require_report>false</require_report>
+     <require_update>false</require_update>
+     <require_resolved>false</require_resolved>
+     <require_closed>false</require_closed>
+    </item>
+   </return>
+  </ns1:mc_project_get_custom_fieldsResponse>
+ </SOAP-ENV:Body>
+</SOAP-ENV:Envelope>

@@ -1,0 +1,3 @@
+src/flags.cc: In function ‘int main()’:
+src/flags.cc:21:24: warning: format ‘%X’ expects argument of type ‘unsigned int’, but argument 2 has type ‘TestFlags {aka CoFlags<TestFlag>}’ [-Wformat]
+src/flags.cc:22:24: warning: format ‘%X’ expects argument of type ‘unsigned int’, but argument 2 has type ‘TestFlags {aka CoFlags<TestFlag>}’ [-Wformat]

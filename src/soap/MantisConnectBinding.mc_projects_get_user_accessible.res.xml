@@ -1,0 +1,337 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SOAP-ENV:Envelope
+ xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"
+ xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/"
+ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+ xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+ xmlns:ns1="http://futureware.biz/mantisconnect">
+ <SOAP-ENV:Body SOAP-ENV:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
+  <ns1:mc_projects_get_user_accessibleResponse>
+   <return SOAP-ENC:arrayType="ns1:ProjectData[1]">
+    <item>
+     <id></id>
+     <name></name>
+     <status>
+      <id></id>
+      <name></name>
+     </status>
+     <enabled>false</enabled>
+     <view_state>
+      <id></id>
+      <name></name>
+     </view_state>
+     <access_min>
+      <id></id>
+      <name></name>
+     </access_min>
+     <file_path></file_path>
+     <description></description>
+     <subprojects SOAP-ENC:arrayType="ns1:ProjectData[1]">
+      <item>
+       <id></id>
+       <name></name>
+       <status>
+        <id></id>
+        <name></name>
+       </status>
+       <enabled>false</enabled>
+       <view_state>
+        <id></id>
+        <name></name>
+       </view_state>
+       <access_min>
+        <id></id>
+        <name></name>
+       </access_min>
+       <file_path></file_path>
+       <description></description>
+       <subprojects SOAP-ENC:arrayType="ns1:ProjectData[1]">
+        <item>
+         <id></id>
+         <name></name>
+         <status>
+          <id></id>
+          <name></name>
+         </status>
+         <enabled>false</enabled>
+         <view_state>
+          <id></id>
+          <name></name>
+         </view_state>
+         <access_min>
+          <id></id>
+          <name></name>
+         </access_min>
+         <file_path></file_path>
+         <description></description>
+         <subprojects SOAP-ENC:arrayType="ns1:ProjectData[1]">
+         
+         </subprojects>
+         <inherit_global>false</inherit_global>
+        </item>
+       
+        <item>
+         <id></id>
+         <name></name>
+         <status>
+          <id></id>
+          <name></name>
+         </status>
+         <enabled>false</enabled>
+         <view_state>
+          <id></id>
+          <name></name>
+         </view_state>
+         <access_min>
+          <id></id>
+          <name></name>
+         </access_min>
+         <file_path></file_path>
+         <description></description>
+         <subprojects SOAP-ENC:arrayType="ns1:ProjectData[1]">
+         
+         </subprojects>
+         <inherit_global>false</inherit_global>
+        </item>
+       </subprojects>
+       <inherit_global>false</inherit_global>
+      </item>
+     
+      <item>
+       <id></id>
+       <name></name>
+       <status>
+        <id></id>
+        <name></name>
+       </status>
+       <enabled>false</enabled>
+       <view_state>
+        <id></id>
+        <name></name>
+       </view_state>
+       <access_min>
+        <id></id>
+        <name></name>
+       </access_min>
+       <file_path></file_path>
+       <description></description>
+       <subprojects SOAP-ENC:arrayType="ns1:ProjectData[1]">
+        <item>
+         <id></id>
+         <name></name>
+         <status>
+          <id></id>
+          <name></name>
+         </status>
+         <enabled>false</enabled>
+         <view_state>
+          <id></id>
+          <name></name>
+         </view_state>
+         <access_min>
+          <id></id>
+          <name></name>
+         </access_min>
+         <file_path></file_path>
+         <description></description>
+         <subprojects SOAP-ENC:arrayType="ns1:ProjectData[1]">
+         
+         </subprojects>
+         <inherit_global>false</inherit_global>
+        </item>
+       
+        <item>
+         <id></id>
+         <name></name>
+         <status>
+          <id></id>
+          <name></name>
+         </status>
+         <enabled>false</enabled>
+         <view_state>
+          <id></id>
+          <name></name>
+         </view_state>
+         <access_min>
+          <id></id>
+          <name></name>
+         </access_min>
+         <file_path></file_path>
+         <description></description>
+         <subprojects SOAP-ENC:arrayType="ns1:ProjectData[1]">
+         
+         </subprojects>
+         <inherit_global>false</inherit_global>
+        </item>
+       </subprojects>
+       <inherit_global>false</inherit_global>
+      </item>
+     </subprojects>
+     <inherit_global>false</inherit_global>
+    </item>
+   
+    <item>
+     <id></id>
+     <name></name>
+     <status>
+      <id></id>
+      <name></name>
+     </status>
+     <enabled>false</enabled>
+     <view_state>
+      <id></id>
+      <name></name>
+     </view_state>
+     <access_min>
+      <id></id>
+      <name></name>
+     </access_min>
+     <file_path></file_path>
+     <description></description>
+     <subprojects SOAP-ENC:arrayType="ns1:ProjectData[1]">
+      <item>
+       <id></id>
+       <name></name>
+       <status>
+        <id></id>
+        <name></name>
+       </status>
+       <enabled>false</enabled>
+       <view_state>
+        <id></id>
+        <name></name>
+       </view_state>
+       <access_min>
+        <id></id>
+        <name></name>
+       </access_min>
+       <file_path></file_path>
+       <description></description>
+       <subprojects SOAP-ENC:arrayType="ns1:ProjectData[1]">
+        <item>
+         <id></id>
+         <name></name>
+         <status>
+          <id></id>
+          <name></name>
+         </status>
+         <enabled>false</enabled>
+         <view_state>
+          <id></id>
+          <name></name>
+         </view_state>
+         <access_min>
+          <id></id>
+          <name></name>
+         </access_min>
+         <file_path></file_path>
+         <description></description>
+         <subprojects SOAP-ENC:arrayType="ns1:ProjectData[1]">
+         
+         </subprojects>
+         <inherit_global>false</inherit_global>
+        </item>
+       
+        <item>
+         <id></id>
+         <name></name>
+         <status>
+          <id></id>
+          <name></name>
+         </status>
+         <enabled>false</enabled>
+         <view_state>
+          <id></id>
+          <name></name>
+         </view_state>
+         <access_min>
+          <id></id>
+          <name></name>
+         </access_min>
+         <file_path></file_path>
+         <description></description>
+         <subprojects SOAP-ENC:arrayType="ns1:ProjectData[1]">
+         
+         </subprojects>
+         <inherit_global>false</inherit_global>
+        </item>
+       </subprojects>
+       <inherit_global>false</inherit_global>
+      </item>
+     
+      <item>
+       <id></id>
+       <name></name>
+       <status>
+        <id></id>
+        <name></name>
+       </status>
+       <enabled>false</enabled>
+       <view_state>
+        <id></id>
+        <name></name>
+       </view_state>
+       <access_min>
+        <id></id>
+        <name></name>
+       </access_min>
+       <file_path></file_path>
+       <description></description>
+       <subprojects SOAP-ENC:arrayType="ns1:ProjectData[1]">
+        <item>
+         <id></id>
+         <name></name>
+         <status>
+          <id></id>
+          <name></name>
+         </status>
+         <enabled>false</enabled>
+         <view_state>
+          <id></id>
+          <name></name>
+         </view_state>
+         <access_min>
+          <id></id>
+          <name></name>
+         </access_min>
+         <file_path></file_path>
+         <description></description>
+         <subprojects SOAP-ENC:arrayType="ns1:ProjectData[1]">
+         
+         </subprojects>
+         <inherit_global>false</inherit_global>
+        </item>
+       
+        <item>
+         <id></id>
+         <name></name>
+         <status>
+          <id></id>
+          <name></name>
+         </status>
+         <enabled>false</enabled>
+         <view_state>
+          <id></id>
+          <name></name>
+         </view_state>
+         <access_min>
+          <id></id>
+          <name></name>
+         </access_min>
+         <file_path></file_path>
+         <description></description>
+         <subprojects SOAP-ENC:arrayType="ns1:ProjectData[1]">
+         
+         </subprojects>
+         <inherit_global>false</inherit_global>
+        </item>
+       </subprojects>
+       <inherit_global>false</inherit_global>
+      </item>
+     </subprojects>
+     <inherit_global>false</inherit_global>
+    </item>
+   </return>
+  </ns1:mc_projects_get_user_accessibleResponse>
+ </SOAP-ENV:Body>
+</SOAP-ENV:Envelope>

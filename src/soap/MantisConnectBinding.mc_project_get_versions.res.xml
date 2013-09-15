@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SOAP-ENV:Envelope
+ xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"
+ xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/"
+ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+ xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+ xmlns:ns1="http://futureware.biz/mantisconnect">
+ <SOAP-ENV:Body SOAP-ENV:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
+  <ns1:mc_project_get_versionsResponse>
+   <return SOAP-ENC:arrayType="ns1:ProjectVersionData[1]">
+    <item>
+     <id></id>
+     <name></name>
+     <project_id></project_id>
+     <date_order>2013-06-23T00:32:00Z</date_order>
+     <description></description>
+     <released>false</released>
+     <obsolete>false</obsolete>
+    </item>
+   
+    <item>
+     <id></id>
+     <name></name>
+     <project_id></project_id>
+     <date_order>2013-06-23T00:32:00Z</date_order>
+     <description></description>
+     <released>false</released>
+     <obsolete>false</obsolete>
+    </item>
+   </return>
+  </ns1:mc_project_get_versionsResponse>
+ </SOAP-ENV:Body>
+</SOAP-ENV:Envelope>
