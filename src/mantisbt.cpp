@@ -11,8 +11,8 @@ CONFIG (String, tracker_password, "")
 #define SOAP_STRING(N) const_cast<char*> (str (N).chars())
 #define SOAP_ENDPOINT SOAP_STRING (endpoint())
 #define SOAP_ACTION(N) const_cast<char*> (soapaction( #N ).chars())
-#define TRACKER_ACCOUNT const_cast<char*> (cfg (tracker_account).chars())
-#define TRACKER_PASSWORD const_cast<char*> (cfg (tracker_password).chars())
+#define TRACKER_ACCOUNT const_cast<char*> (tracker_account.chars())
+#define TRACKER_PASSWORD const_cast<char*> (tracker_password.chars())
 
 // Get an IRC color by status
 static str ticketStatusColor (int val) {

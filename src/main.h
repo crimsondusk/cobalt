@@ -17,7 +17,7 @@ void fatal (const char* fmtstr, ...);
 void warn (const char* msg, ...);
 #endif // IN_IDE_PARSER
 
-void FatalError (const char* file, ulong line, const char* func, std::initializer_list<CoVariant> s);
+void FatalError (const char* file, ulong line, const char* func, initlist<CoVariant> s);
 void DoWarn (const char* file, ulong line, const char* func, std::initializer_list<CoVariant> s);
 
 #endif // COMMON_H

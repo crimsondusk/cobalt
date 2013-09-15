@@ -13,11 +13,11 @@
 
 EXTERN_CONFIG (String, tracker_url)
 
-static CoList<IRCCommandInfo> G_IRCCommands;
+CoList<IRCCommandInfo> g_IRCCommands;
 
 IRCCommandAdder::IRCCommandAdder (const char* namestring, IRCCommandType func) {
 	const IRCCommandInfo info = {namestring, func};
-	G_IRCCommands << info;
+	g_IRCCommands << info;
 }
 
 str IRCTarget (IRCUser* sender, IRCChannel* chan) {
@@ -162,7 +162,7 @@ IRC_COMMAND (fullticketinfo) {
 IRC_COMMAND (commands) {
 	CoStringList cmdnames;
 	
-	for (const IRCCommandInfo& info : G_IRCCommands)
+	for (const IRCCommandInfo& info : g_IRCCommands)
 		cmdnames << info.namestring;
 	
 	cmdnames.sort();

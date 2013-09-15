@@ -12,6 +12,7 @@ IRCConnection* g_IRCConnection = null;
 
 CONFIG (String, irc_server, "irc.zandronum.com")
 CONFIG (Int,    irc_port,   6667)
+EXTERN_CONFIG (String, irc_channel)
 
 static CoString G_ConfigFile = "cobalt.xml";
 
@@ -22,14 +23,14 @@ int main (int argc, char* argv[]) {
 	print ("%1 version %2.%3 starting\n", APPNAME, VERSION_MAJOR, VERSION_MINOR);
 	if (!CoConfig::load (G_ConfigFile)) {
 		fprint (stderr, "error: Couldn't open %1: %2\n", G_ConfigFile, strerror (errno));
+		fprint (stderr, "Creating default config...\n");
+		
+		CoConfig::save (G_ConfigFile);
 		return 1;
 	}
 	
 	atexit (term);
 	HUFFMAN_Construct();
-	
-	int i = 5;
-	float f;
 	
 	struct sigaction sighandler;
 	sighandler.sa_handler = &sig;
@@ -70,7 +71,7 @@ void sig (int signum) {
 	}
 }
 
-void FatalError (const char* file, ulong line, const char* func, initlist<var> s) {
+void FatalError (const char* file, ulong line, const char* func, initlist<CoVariant> s) {
 	str body = DoFormat (s);
 	str msg = fmt ("fatal() called: %1:%2: %3: ", file, line, func);
 	msg += body;
@@ -80,18 +81,18 @@ void FatalError (const char* file, ulong line, const char* func, initlist<var> s
 	
 	// Quit with the error message if we're connected
 	if (g_IRCConnection && g_IRCConnection->loggedIn())
-		g_IRCConnection->write ({ "QUIT :%1\n", msg });
+		g_IRCConnection->write (fmt ("QUIT :%1\n", msg));
 	
 	abort();
 }
 
-void DoWarn (const char* file, ulong line, const char* func, initlist<var> s) {
+void DoWarn (const char* file, ulong line, const char* func, initlist<CoVariant> s) {
 	str body = DoFormat (s);
 	str msg = fmt ("warning: %1:%2: %3: ", file, line, func);
 	msg += body;
 	
-	fprintf (stderr, "%s\n", msg.toStdString().c_str());
+	fprintf (stderr, "%s\n", msg.chars());
 	
 	if (g_IRCConnection && g_IRCConnection->loggedIn())
-		g_IRCConnection->privmsg (cfg (Name::Channel), msg);
+		g_IRCConnection->privmsg (irc_channel, msg);
 }

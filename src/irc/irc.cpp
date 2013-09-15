@@ -30,6 +30,7 @@ IRCConnection::IRCConnection (str node, uint16 port) :
 	m_loggedIn (false)
 {
 	setBlocking (false);
+	setVerbose (true);
 }
 
 // =============================================================================
@@ -80,10 +81,14 @@ void IRCConnection::incoming (str data) {
 	// Deliminate it
 	CoStringList tokens = data.split (" ");
 	
+	for (CoStringRef& tok : tokens)
+		print ("\t- %1\n", tok);
+	
 	if (tokens.size() == 0)
 		return;
 	
 	// If the server is pinging us, reply with a pong.
+	print ("tokens[0] = %1\n", tokens[0]);
 	if (+tokens[0] == "PING") {
 		write (fmt ("PONG %1", tokens[1]));
 		return;
@@ -303,6 +308,7 @@ void IRCConnection::nonNumericResponse (const str& data, CoStringListRef tokens)
 		else
 			write (fmt ("WHO %1", nick));
 	} elif (codestring == "PRIVMSG") {
+		print ("it's a privmsg!\n");
 		str target = tokens[2];
 		IRCChannel* chan = findChannel (tokens[2]);  // if null, this is PM
 		str message = data.substr (posof (data, 3) + 2);
@@ -366,6 +372,7 @@ void IRCConnection::nonNumericResponse (const str& data, CoStringListRef tokens)
 			}
 		}
 		
+		print ("message: %1\nmessage[0]: %1\n", message, message[0]);
 		if (message[0] == irc_commandprefix[0]) {
 			str cmdname = msgargs[0].substr (1);
 			

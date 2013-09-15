@@ -1,19 +1,10 @@
 #include <ctime>
-#include <QStringList>
 #include "main.h"
-
-// Name-to-string array.
-const char* g_NameStrings[] = {
-#define _N(X) "NAME_" # X
-	_N (None),
-#include "namelist.h"
-#undef _N
-};
 
 // =============================================================================
 // Checks a string against a mask
 // -----------------------------------------------------------------------------
-bool mask (str string, str mask) {
+bool mask (CoString string, CoString mask) {
 	// Elevate to uppercase for case-insensitive matching
 	string = +string;
 	mask = +mask;

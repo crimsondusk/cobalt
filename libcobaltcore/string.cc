@@ -63,7 +63,7 @@ CoStringList CoString::split (CoString del) const {
 		if (b == -1)
 			break;
 		
-		CoString sub = substr (a, b);
+		CoString sub = substr (a, b - 1);
 		
 		if (sub.length() > 0)
 			res.push_back (substr (a, b));
@@ -73,7 +73,7 @@ CoStringList CoString::split (CoString del) const {
 	
 	// Add the string at the right of the last separator
 	if (a < (int) length())
-		res.push_back (substr (a, length()));
+		res.push_back (substr (a));
 	
 	return res;
 }
@@ -104,7 +104,7 @@ CoString CoString::substr (int a, int b) const {
 	if (b < a)
 		return "";
 	
-	return m_string.substr (a, (b - a) + 1);
+	return m_string.substr (a, (b - a));
 }
 
 int CoString::posof (int n) const {

@@ -21,17 +21,17 @@ LauncherRequest::LauncherRequest() {}
 uchar g_huffmanBuffer[131072];
 
 void LauncherRequest::query() {
-	Bytestream s;
+	CoBytestream s;
 	s.writeLong (ZandronumProtocol::LauncherServerChallenge);
 	s.writeLong (Name | MapName | MaxClients | NumPlayers | GameType | ForcePassword | IWAD | PWADs);
 	s.writeLong (1234);
-
+	
 	int len;
-	HUFFMAN_Encode (const_cast<uchar*> (reinterpret_cast<const uchar*> (s.data())), g_huffmanBuffer, s.len(), &len);
-	Bytestream encoded (reinterpret_cast<char*> (g_huffmanBuffer), len);
-
+	HUFFMAN_Encode (const_cast<uchar*> (reinterpret_cast<const uchar*> (s.data())),
+		g_huffmanBuffer, s.length(), &len);
+	CoBytestream encoded (reinterpret_cast<char*> (g_huffmanBuffer), len);
+	
 	launch (encoded, address());
-
 	setNextRequest (CoTime::now() + 1);
 }
 

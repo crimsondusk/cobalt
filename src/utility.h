@@ -33,12 +33,11 @@ template <class T> T valueMap (int expr, T defaultval, int numvals, ...) {
 	return defaultval;
 }
 
-str join (const CoStringList& args, str delim);
-
+CoString join (const CoStringList& args, str delim);
 int posof (const str& a, int i);
 
 // =============================================================================
 // Checks a string against a mask.
-bool mask (str string, str mask);
+bool mask (CoString string, CoString mask);
 
 #endif // __UTILITY_H__

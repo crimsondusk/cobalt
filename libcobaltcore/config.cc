@@ -132,7 +132,6 @@ namespace CoConfig {
 			if (i.name == null)
 				break;
 			
-			print ("write %1\n", i.name);
 			makeXMLNode (i.name, i.ptr, i.type, doc->root());
 		}
 		
