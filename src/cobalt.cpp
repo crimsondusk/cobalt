@@ -1,20 +1,20 @@
 #include <sys/time.h>
 #include <unistd.h>
 #include <signal.h>
+#include <libcobaltcore/xml.h>
 #include "main.h"
 #include "irc/irc.h"
 #include "irc/irc_connection.h"
 #include "mantisbt.h"
 #include "zanserver.h"
 #include "3rdparty/huffman.h"
-#include <libcobaltcore/xml.h>
 
 IRCConnection* g_IRCConnection = null;
 
-CONFIG (String, irc_server, "irc.zandronum.com")
+CONFIG (String, irc_server, "")
 CONFIG (Int,    irc_port,   6667)
 
-static CoString G_ConfigFile = "cobalt.xml";
+CoString G_ConfigFile = "cobalt.xml";
 
 void sig (int);
 void term();

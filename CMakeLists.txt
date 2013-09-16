@@ -27,6 +27,7 @@ add_library (cobaltcore SHARED
 )
 
 add_executable (cobalt
+	src/irc/factoids.cpp
 	src/irc/irc.cpp
 	src/irc/irc_channel.cpp
 	src/irc/irc_commands.cpp

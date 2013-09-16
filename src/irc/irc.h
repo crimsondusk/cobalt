@@ -49,6 +49,10 @@ void IRCCommand_##X (IRC_COMMAND_PARMS); \
 IRCCommandAdder CMDAdder_##X (#X, &IRCCommand_##X); \
 void IRCCommand_##X (IRC_COMMAND_PARMS)
 
+#define IRC_REPLY(...) conn->privmsg (REPLY_TARGET, fmt (__VA_ARGS__));
+#define REPLY_TARGET IRCReplyTarget (invoker, channel)
+str IRCReplyTarget (IRCUser* sender, IRCChannel* chan);
+
 typedef void (*IRCCommandType) (IRC_COMMAND_PARMS);
 
 struct IRCCommandInfo {

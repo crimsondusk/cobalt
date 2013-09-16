@@ -10,51 +10,46 @@
 #include "irc_user.h"
 #include "irc_connection.h"
 
-#define REPLY(...) conn->privmsg (TARGET, fmt (__VA_ARGS__));
-
 EXTERN_CONFIG (String, tracker_url)
 EXTERN_CONFIG (String, irc_commandprefix)
 
 CoList<IRCCommandInfo> g_IRCCommands;
-static CoXMLDocument*  G_FactsXML = null;
 
 IRCCommandAdder::IRCCommandAdder (const char* namestring, IRCCommandType func) {
 	const IRCCommandInfo info = {namestring, func};
 	g_IRCCommands << info;
 }
 
-str IRCTarget (IRCUser* sender, IRCChannel* chan) {
+str IRCReplyTarget (IRCUser* sender, IRCChannel* chan) {
 	if (chan)
 		return chan->name();
 	
 	return sender->nick();
 }
 
-#define TARGET IRCTarget (invoker, channel)
-
 // =============================================================================
 IRC_COMMAND (sayhi) {
 	if (parms.size() < 2)
-		conn->privmsg (TARGET, "Hi!");
+		conn->privmsg (REPLY_TARGET, "Hi!");
 	else
-		conn->privmsg (TARGET, fmt ("Hi, %2!", parms[1]));
+		conn->privmsg (REPLY_TARGET, fmt ("Hi, %2!", parms[1]));
 }
 
 // =============================================================================
 IRC_COMMAND (quit) {
 	if (!invoker->isAdmin()) {
-		REPLY ("%1: Who are you to tell me to GTFO?", invoker->nick())
+		IRC_REPLY ("%1: Who are you to tell me to GTFO?", invoker->nick())
 		return;
 	}
 	
-	REPLY ("Bye.")
+	IRC_REPLY ("Bye.")
 	conn->write ({ "QUIT :Leaving" });
 }
 
 // =============================================================================
 IRC_COMMAND (raw) {
 	if (!invoker->isAdmin()) {
-		REPLY ("Who are you to tell me what to do?")
+		IRC_REPLY ("Who are you to tell me what to do?")
 		return;
 	}
 	
@@ -71,15 +66,15 @@ IRC_COMMAND (ban) {
 		return;
 	
 	if (parms.size() < 2) {
-		REPLY ("Need a mask")
+		IRC_REPLY ("Need a mask")
 		return;
 	}
 	
-	conn->write (fmt ("MODE %1 +b %2\n", TARGET, parms[1]));
+	conn->write (fmt ("MODE %1 +b %2\n", REPLY_TARGET, parms[1]));
 	
 	for (IRCUser* user : conn->users)
 		if (mask (user->userhost(), parms[1]))
-			conn->write (fmt ("KICK %1 %2 :Banned", TARGET, user->nick()));
+			conn->write (fmt ("KICK %1 %2 :Banned", REPLY_TARGET, user->nick()));
 }
 
 IRC_COMMAND (testfatal) {
@@ -91,30 +86,30 @@ IRC_COMMAND (testfatal) {
 }
 
 IRC_COMMAND (time) {
-	conn->privmsg (TARGET, fmt ("Now is %1", CoDate (CoTime::now())));
+	conn->privmsg (REPLY_TARGET, fmt ("Now is %1", CoDate (CoTime::now())));
 }
 
 CoStopwatch g_stopwatch;
 IRC_COMMAND (sw_start) {
 	g_stopwatch.start();
-	REPLY ("Stopwatch started.")
+	IRC_REPLY ("Stopwatch started.")
 }
 
 IRC_COMMAND (sw_stop) {
 	g_stopwatch.stop();
-	REPLY ("Stopwatch stopped, lapsed time: %1", g_stopwatch.elapsed())
+	IRC_REPLY ("Stopwatch stopped, lapsed time: %1", g_stopwatch.elapsed())
 }
 
 IRC_COMMAND (whois) {
 	if (parms.size() < 2) {
-		REPLY ("Who is... who?")
+		IRC_REPLY ("Who is... who?")
 		return;
 	}
 	
 	IRCUser* user = conn->findUser (parms[1]);
 	
 	if (user == null) {
-		REPLY ("I don't know who that is.")
+		IRC_REPLY ("I don't know who that is.")
 		return;
 	}
 	
@@ -122,13 +117,13 @@ IRC_COMMAND (whois) {
 	for (IRCChannel * chan : user->channels())
 		channames << chan->name();
 	
-	REPLY ("I think %1 is %2. Real name: %3", user->nick(), user->userhost(), user->name())
-	REPLY ("I see %1 on %2", user->nick(), join (channames, ", "))
+	IRC_REPLY ("I think %1 is %2. Real name: %3", user->nick(), user->userhost(), user->name())
+	IRC_REPLY ("I see %1 on %2", user->nick(), join (channames, ", "))
 }
 
 IRC_COMMAND (ticket) {
 	if (parms.size() < 2) {
-		conn->privmsg (TARGET, "Which ticket?");
+		conn->privmsg (REPLY_TARGET, "Which ticket?");
 		return;
 	}
 	
@@ -140,15 +135,15 @@ IRC_COMMAND (ticket) {
 	bool success = ticketinfo (idstr, msg);
 	
 	if (success) {
-		REPLY (msg)
-		REPLY ("Link: %1view.php?id=%2", tracker_url, idstr)
+		IRC_REPLY (msg)
+		IRC_REPLY ("Link: %1view.php?id=%2", tracker_url, idstr)
 	} else
-		REPLY (msg)
+		IRC_REPLY (msg)
 }
 
 IRC_COMMAND (fullticketinfo) {
 	if (parms.size() < 2) {
-		REPLY ("Which ticket?")
+		IRC_REPLY ("Which ticket?")
 		return;
 	}
 	
@@ -159,7 +154,7 @@ IRC_COMMAND (fullticketinfo) {
 	str msg = fullticketinfo (idstr);
 	
 	for (const str& line : msg.split ("\n"))
-		conn->privmsg (TARGET, line);
+		conn->privmsg (REPLY_TARGET, line);
 }
 
 IRC_COMMAND (commands) {
@@ -169,7 +164,7 @@ IRC_COMMAND (commands) {
 		cmdnames << info.namestring;
 	
 	cmdnames.sort();
-	conn->privmsg (TARGET, fmt ("Available commands: %1", join (cmdnames, " ")));
+	conn->privmsg (REPLY_TARGET, fmt ("Available commands: %1", join (cmdnames, " ")));
 }
 
 IRC_COMMAND (msg) {
@@ -187,7 +182,7 @@ IRC_COMMAND (msg) {
 IRC_COMMAND (md5) {
 	int space = message.first (" ");
 	str raw = (space != -1) ? message.substr (space + 1, -1) : "";
-	conn->privmsg (TARGET, fmt ("Digest of '%1' is: %2", raw, md5 (raw)));
+	conn->privmsg (REPLY_TARGET, fmt ("Digest of '%1' is: %2", raw, md5 (raw)));
 }
 #endif // 0
 
@@ -195,16 +190,16 @@ IRC_COMMAND (query) {
 	CoIPAddress addr;
 	
 	if (parms.size() < 2) {
-		conn->privmsg (TARGET, "What shall I query?");
+		conn->privmsg (REPLY_TARGET, "What shall I query?");
 		return;
 	}
 	
 	if (!CoIPAddress::fromString (parms[1], addr)) {
-		REPLY ("Bad IP address!")
+		IRC_REPLY ("Bad IP address!")
 		return;
 	}
 	
-	addServerQuery (addr, TARGET);
+	addServerQuery (addr, REPLY_TARGET);
 }
 
 IRC_COMMAND (resolve) {
@@ -213,13 +208,13 @@ IRC_COMMAND (resolve) {
 	
 	CoIPAddress addr;
 
-	REPLY ("Resolving %1...", parms[1]);
+	IRC_REPLY ("Resolving %1...", parms[1]);
 	int r = CoIPAddress::resolve (parms[1], addr);
 
 	if (r != 0)
-		REPLY ("Failed to resolve: %1", CoString (gai_strerror (r)))
+		IRC_REPLY ("Failed to resolve: %1", CoString (gai_strerror (r)))
 	else
-		REPLY ("address: %1", addr)
+		IRC_REPLY ("address: %1", addr)
 }
 
 IRC_COMMAND (masshighlight) {
@@ -227,7 +222,7 @@ IRC_COMMAND (masshighlight) {
 		return;
 	
 	if (invoker->chanStatus (channel) < IRCChannel::Voiced) {
-		REPLY ("Must be half-operator or higher to use this");
+		IRC_REPLY ("Must be half-operator or higher to use this");
 		return;
 	}
 	
@@ -239,13 +234,13 @@ IRC_COMMAND (masshighlight) {
 		nicklist += e.userinfo()->nick();
 		
 		if (nicklist.length() > 300) {
-			REPLY ("%1", nicklist);
+			IRC_REPLY ("%1", nicklist);
 			nicklist = "";
 		}
 	}
 	
 	if (nicklist.length() > 0)
-		REPLY ("%1", nicklist);
+		IRC_REPLY ("%1", nicklist);
 }
 
 IRC_COMMAND (mhl) {
@@ -283,7 +278,7 @@ IRC_COMMAND (add_autojoin) {
 		passwordBlurb = fmt (" (password: %1)", mode_k->arg);
 	}
 	
-	REPLY ("%1 auto-join channel %2%3", (isNew ? "Added" : "Updated"),  parms[1], passwordBlurb);
+	IRC_REPLY ("%1 auto-join channel %2%3", (isNew ? "Added" : "Updated"),  parms[1], passwordBlurb);
 	saveConfig();
 }
 
@@ -292,9 +287,9 @@ IRC_COMMAND (rehash) {
 		return;
 	
 	if (!CoConfig::load (configFileName()))
-		REPLY ("Error rehashing: %1", CoXMLDocument::parseError())
+		IRC_REPLY ("Error rehashing: %1", CoXMLDocument::parseError())
 	else
-		REPLY ("Rehash successful")
+		IRC_REPLY ("Rehash successful")
 }
 
 IRC_COMMAND (writecfg) {
@@ -302,139 +297,7 @@ IRC_COMMAND (writecfg) {
 		return;
 	
 	if (!CoConfig::save (configFileName()))
-		REPLY ("Error saving: %1", strerror (errno))
+		IRC_REPLY ("Error saving: %1", strerror (errno))
 	else
-		REPLY ("Saved successfully")
-}
-
-static bool initFactsXML() {
-	if (G_FactsXML == null) {
-		G_FactsXML = CoXMLDocument::load ("facts.xml");
-		
-		if (errno)
-			G_FactsXML = CoXMLDocument::newDocumentWithRoot ("facts");
-	}
-	
-	return (G_FactsXML != null);
-}
-
-static CoXMLNode* getFactoid (CoStringRef subject) {
-	assert (G_FactsXML != null);
-	return G_FactsXML->root()->getOneNodeByAttribute ("subject", subject);
-}
-
-IRC_COMMAND (learn) {
-	if (parms.size() < 3) {
-		REPLY ("I should learn what?");
-		REPLY ("Usage: %1 <subject> <:text>", parms[0]);
-		return;
-	}
-	
-	CoString subject = parms[1];
-	CoString text = message.substr (message.posof (2) + 1);
-	
-	if (subject.length() > 20) {
-		REPLY ("That subject is too long.")
-		return;
-	}
-	
-	for (char c : subject) {
-		if ((c < 'a' || c > 'z') &&
-			(c < 'A' || c > 'Z') &&
-			(c < '0' || c > '9') &&
-			c != '_')
-		{
-			REPLY ("Subject must only contain alpha-numeric characters or underscores")
-			return;
-		}
-	}
-	
-	if (!initFactsXML())
-		REPLY ("Couldn't open facts.xml: %1", CoXMLDocument::parseError());
-	
-	// If there already is a factoid by this name, delete it now
-	CoXMLNode* node;
-	while ((node = G_FactsXML->root()->findSubNode (subject)) != null)
-		delete node;
-	
-	node = new CoXMLNode ("fact", G_FactsXML->root());
-	node->setAttribute ("subject", subject);
-	node->addSubNode ("author", invoker->userhost());
-	node->addSubNode ("time", CoString::fromNumber (CoTime::now().seconds()));
-	CoXMLNode* textNode = node->addSubNode ("text", text);
-	textNode->setCDATA (true);
-	
-	if (!G_FactsXML->save ("facts.xml"))
-		REPLY ("WARNING: Failed to save facts.xml with the new data: %1\n", strerror (errno));
-	
-	REPLY ("I now know about '%1'", subject);
-}
-
-IRC_COMMAND (about) {
-	if (parms.size() < 2) {
-		REPLY ("Usage: %1 <subject>", parms[0]);
-		return;
-	}
-	
-	if (!initFactsXML())
-		REPLY ("Couldn't open facts.xml: %1", CoXMLDocument::parseError());
-	
-	CoString subject = parms[1];
-	CoXMLNode* node = getFactoid (subject);
-	CoXMLNode* textNode = node ? node->findSubNode ("text") : null;
-	
-	if (!textNode) {
-		REPLY ("I don't know anything about %1. You can teach me that with %2teach.",
-			subject, irc_commandprefix);
-		return;
-	}
-	
-	REPLY ("%1 is %2", subject, textNode->contents());
-}
-
-IRC_COMMAND (factoid_meta) {
-	if (parms.size() < 2) {
-		REPLY ("Usage: %1 <subject>", parms[0]);
-		return;
-	}
-	
-	if (!initFactsXML())
-		REPLY ("Couldn't open facts.xml: %1", CoXMLDocument::parseError());
-	
-	CoString subject = parms[1];
-	CoXMLNode* node = getFactoid (subject);
-	
-	if (!node) {
-		REPLY ("No such factoid");
-		return;
-	}
-	
-	CoXMLNode* timeNode = node->findSubNode ("time"),
-		*authorNode = node->findSubNode ("author");
-	
-	if (!timeNode || !authorNode) {
-		REPLY ("Bad factoid: no time and/or author nodes");
-		return;
-	}
-	
-	CoTime ts = CoTime (timeNode->contents().toLong());
-	REPLY ("Factoid '%1' was set by %2 on %3", subject, authorNode->contents(), CoDate (ts));
-}
-
-IRC_COMMAND (factoid_del) {
-	if (parms.size() < 2 || !invoker->isAdmin())
-		return;
-	
-	initFactsXML();
-	if (!G_FactsXML)
-		return;
-	
-	CoString subject = parms[1];
-	CoXMLNode* node = getFactoid (subject);
-	if (node) {
-		delete node;
-		G_FactsXML->save ("facts.xml");
-		REPLY ("Factoid '%1' deleted", subject);
-	} else
-		REPLY ("No such factoid exists")
+		IRC_REPLY ("Saved successfully")
 }
