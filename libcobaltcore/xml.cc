@@ -6,6 +6,7 @@
 static CoString             G_XMLError;
 static CoVector<CoXMLNode*> G_Stack;
 static int                  G_SaveStack;
+static int                  G_IndentStyle = CoXMLDocument::Tabs;
 
 // =============================================================================
 // -----------------------------------------------------------------------------
@@ -30,9 +31,11 @@ static CoXMLNode* topStackNode() {
 // =============================================================================
 // -----------------------------------------------------------------------------
 CoXMLDocument::CoXMLDocument (CoXMLNode* root) :
+	m_indentStyle (NoStylePreference),
 	m_root (root)
 {
 	m_header["version"] = "1.0";
+	m_header["encoding"] = "UTF-8";
 }
 
 // =============================================================================
@@ -69,7 +72,7 @@ CoXMLDocument* CoXMLDocument::load (CoStringRef fname) {
 	CoMap<CoString, CoString> header;
 	
 	if ((fp = fopen (fname, "r")) == null) {
-		G_XMLError = fmt ("couldn't open %1 for reading", fname);
+		G_XMLError = fmt ("couldn't open %1 for reading: %2", fname, strerror (errno));
 		return null;
 	}
 	
@@ -128,6 +131,7 @@ CoXMLDocument* CoXMLDocument::load (CoStringRef fname) {
 					XML_MUST_GET (CoXMLScanner::Equals)
 					XML_MUST_GET (CoXMLScanner::String)
 					node->m_attrs[attrname] = scan.token();
+					assert (node->hasAttribute (attrname) == true);
 				}
 				
 				if (scan.next (CoXMLScanner::TagSelfCloser)) {
@@ -135,10 +139,7 @@ CoXMLDocument* CoXMLDocument::load (CoStringRef fname) {
 						XML_ERROR ("Root must not close self")
 					
 					CoXMLNode* popee;
-					if (!G_Stack.pop (popee) || popee != node)
-						XML_ERROR ("WTF is going on with the stack?!")
-					
-					node->m_isSelfEnclosing = true;
+					assert (G_Stack.pop (popee) && popee == node);
 				} else
 					XML_MUST_GET (CoXMLScanner::TagEnd)
 			}
@@ -160,7 +161,7 @@ CoXMLDocument* CoXMLDocument::load (CoStringRef fname) {
 		case CoXMLScanner::Symbol:
 			{
 				if (G_Stack.size() == 0)
-					XML_ERROR ("Misplaced CDATA/symbol/string")
+					XML_ERROR ("Misplaced CDATA/symbol")
 				
 				CoXMLNode* node = G_Stack[G_Stack.size() - 1];
 				node->m_isCData = (scan.tokenType() == CoXMLScanner::CData);
@@ -203,24 +204,45 @@ bool CoXMLDocument::save (CoStringRef fname) const {
 	
 	G_SaveStack = 0;
 	writeNode (fp, m_root);
+	
+	fclose (fp);
 	return true;
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-void CoXMLDocument::writeNode (FILE* fp, const CoXMLNode* node) const {
-	for (int i = 0; i < G_SaveStack; ++i)
-		fprint (fp, "\t");
+static CoString getIndentation (int style) {
+	CoString out, unit;
 	
-	if (node->isSelfEnclosing()) {
-		fprint (fp, "<%1 />\n", node->name());
-		return;
+	if (style == CoXMLDocument::NoStylePreference)
+		style = G_IndentStyle;
+	
+	if (style == CoXMLDocument::Tabs)
+		unit = "\t";
+	else {
+		for (int i = 0; i < style; ++i)
+			unit += ' ';
 	}
 	
-	fprint (fp, "<%1", node->name());
+	for (int i = 0; i < G_SaveStack; ++i)
+		out += unit;
+	
+	return out;
+}
+
+// =============================================================================
+// -----------------------------------------------------------------------------
+void CoXMLDocument::writeNode (FILE* fp, const CoXMLNode* node) const {
+	CoString indent = getIndentation (indentStyle());
+	fprint (fp, "%1<%2", indent, node->name());
 	
 	for (const auto& attr : node->attributes())
 		fprint (fp, " %1=\"%2\"", encode (attr.first), encode (attr.second));
+	
+	if (node->isEmpty()) {
+		fprint (fp, " />\n", node->name());
+		return;
+	}
 	
 	fprint (fp, ">");
 	
@@ -233,8 +255,7 @@ void CoXMLDocument::writeNode (FILE* fp, const CoXMLNode* node) const {
 			G_SaveStack--;
 		}
 		
-		for (int i = 0; i < G_SaveStack; ++i)
-			fprint (fp, "\t");
+		fprint (fp, indent);
 	} else {
 		// Write content
 		if (node->isCDATA())
@@ -276,15 +297,49 @@ CoXMLNode* CoXMLDocument::findNodeByName (CoStringRef name) const {
 
 // =============================================================================
 // -----------------------------------------------------------------------------
+CoXMLNode* CoXMLDocument::navigateTo (CoStringListRef path, bool allowMake) const {
+	CoXMLNode* node = root();
+	
+	for (CoStringRef name : path) {
+		CoXMLNode* parent = node;
+		node = parent->findSubNode (name);
+		
+		if (!node) {
+			if (allowMake)
+				node = new CoXMLNode (name, parent);
+			else
+				return null;
+		}
+	}
+	
+	return node;
+}
+
+// =============================================================================
+// -----------------------------------------------------------------------------
 CoStringRef CoXMLDocument::parseError() {
 	return G_XMLError;
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
+int CoXMLDocument::globalIndentation() {
+	return G_IndentStyle;
+}
+
+// =============================================================================
+// -----------------------------------------------------------------------------
+void CoXMLDocument::setGlobalIndentation (int style) {
+	assert (style != NoStylePreference);
+	G_IndentStyle = style;
+}
+
+// =============================================================================
+// -----------------------------------------------------------------------------
 CoXMLNode::CoXMLNode (CoStringRef name, CoXMLNode* parent) :
 	m_name    (name),
-	m_isCData (false)
+	m_isCData (false),
+	m_parent  (parent)
 {
 	if (parent != null)
 		parent->m_nodes << this;
@@ -295,17 +350,19 @@ CoXMLNode::CoXMLNode (CoStringRef name, CoXMLNode* parent) :
 CoXMLNode::~CoXMLNode() {
 	for (CoXMLNode* node : m_nodes)
 		delete node;
+	
+	if (m_parent)
+		m_parent->dropNode (this);
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 CoString CoXMLNode::attribute (CoStringRef name) const {
-	auto it = m_attrs.find (name);
+	for (auto& it : m_attrs)
+		if (it.first == name)
+			return it.second;
 	
-	if (it == m_attrs.end())
-		return CoString();
-	
-	return it->second;
+	return CoString();
 }
 
 // =============================================================================
@@ -336,21 +393,20 @@ void CoXMLNode::dropNode (CoXMLNode* node) {
 // =============================================================================
 // -----------------------------------------------------------------------------
 bool CoXMLNode::hasAttribute (CoStringRef name) {
-	return m_attrs.find (name) != m_attrs.end();
+	// FIXME: Why doesn't this work?
+	// return m_attrs.find (name) != m_attrs.end();
+	
+	for (auto& it : m_attrs)
+		if (it.first == name)
+			return true;
+	
+	return false;
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 void CoXMLNode::setAttribute (CoStringRef name, CoStringRef data) {
 	m_attrs[name] = data;
-}
-
-// =============================================================================
-// -----------------------------------------------------------------------------
-CoXMLNode* CoXMLNode::newSelfEnclosingNode (CoStringRef name, CoXMLNode* parent) {
-	CoXMLNode* node = new CoXMLNode (name, parent);
-	node->m_isSelfEnclosing = true;
-	return node;
 }
 
 // =============================================================================
@@ -366,4 +422,22 @@ CoXMLNode* CoXMLNode::findSubNode (CoStringRef fname, bool recursive) {
 	}
 	
 	return null;
+}
+
+// =============================================================================
+// -----------------------------------------------------------------------------
+CoList<CoXMLNode*> CoXMLNode::getNodesByName (CoStringRef name) {
+	CoList<CoXMLNode*> nodes;
+	
+	for (CoXMLNode* node : this->nodes())
+		if (node->name() == name)
+			nodes << node;
+	
+	return nodes;
+}
+
+// =============================================================================
+// -----------------------------------------------------------------------------
+bool CoXMLNode::isEmpty() const {
+	return contents().length() == 0 && nodes().size() == 0;
 }

@@ -8,19 +8,19 @@
 #include "irc_connection.h"
 #include "irc_user.h"
 #include "irc_channel.h"
+#include <libcobaltcore/xml.h>
 
-CONFIG (String, irc_channel, "")
-CONFIG (String, irc_usermodes, "+iw")
-CONFIG (String, irc_nickname, APPNAME)
-CONFIG (String, irc_username, APPNAME)
-CONFIG (String, irc_realname, APPNAME)
-CONFIG (String, irc_password, "")
-CONFIG (String, irc_chan_ownersymbol, "~")
-CONFIG (String, irc_chan_adminsymbol, "&")
-CONFIG (String, irc_chan_opsymbol, "@")
-CONFIG (String, irc_chan_halfopsymbol, "%")
-CONFIG (String, irc_chan_voicesymbol, "+")
-CONFIG (String, irc_commandprefix, "&")
+CONFIG (String,    irc_usermodes, "+iw")
+CONFIG (String,    irc_nickname, APPNAME)
+CONFIG (String,    irc_username, APPNAME)
+CONFIG (String,    irc_realname, APPNAME)
+CONFIG (String,    irc_password, "")
+CONFIG (String,    irc_chan_ownersymbol, "~")
+CONFIG (String,    irc_chan_adminsymbol, "&")
+CONFIG (String,    irc_chan_opsymbol, "@")
+CONFIG (String,    irc_chan_halfopsymbol, "%")
+CONFIG (String,    irc_chan_voicesymbol, "+")
+CONFIG (String,    irc_commandprefix, "&")
 EXTERN_CONFIG (String, tracker_url)
 
 // =============================================================================
@@ -94,11 +94,28 @@ void IRCConnection::incoming (str data) {
 	// NUMERIC CODES
 	switch (tokens[1].toLong()) {
 	case RPL_WELCOME:
-		// Server accepted us, tell it that we're joining
-		write (fmt ("JOIN %1", irc_channel));
-		write (fmt ("MODE %1 %2", currentNickname(), irc_usermodes));
-		
-		setLoggedIn (true);
+		{
+			// Server accepted us, tell it that we're joining
+			CoXMLNode* parent;
+			
+			// Join any channels defined in our xml
+			if ((parent = CoConfig::xml()->navigateTo ({"irc", "channels"})) != null) {
+				CoList<CoXMLNode*> nodes = parent->getNodesByName ("channel");
+				
+				for (CoXMLNode* node : nodes) {
+					CoString joincmd = fmt ("JOIN %1", node->attribute ("name"));
+					CoString passwd;
+					
+					if ((passwd = node->attribute ("password")).length() > 0)
+						joincmd += fmt (" %1", passwd);
+					
+					write (joincmd);
+				}
+			}
+			
+			write (fmt ("MODE %1 %2", currentNickname(), irc_usermodes));
+			setLoggedIn (true);
+		}
 		break;
 		
 	case ERR_NEEDMOREPARAMS:

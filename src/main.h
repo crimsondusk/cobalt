@@ -19,5 +19,7 @@ void warn (const char* msg, ...);
 
 void FatalError (const char* file, ulong line, const char* func, initlist<CoVariant> s);
 void DoWarn (const char* file, ulong line, const char* func, std::initializer_list<CoVariant> s);
+bool saveConfig();
+CoStringRef configFileName();
 
 #endif // COMMON_H

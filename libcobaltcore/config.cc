@@ -6,13 +6,16 @@
 // =============================================================================
 // -----------------------------------------------------------------------------
 namespace CoConfig {
-	ConfigData g_configData[COBALT_MAX_CONFIG];
-	int g_cfgDataCursor = 0;
+	ConfigData              g_configData[COBALT_MAX_CONFIG];
+	int                     g_cfgDataCursor = 0;
+	static CoXMLDocument*   G_XMLDocument = null;
 	
 	// =============================================================================
 	// -----------------------------------------------------------------------------
-	static CoXMLNode* makeXMLNode (CoStringRef name, void* ptr, Type type, CoXMLNode* root) {
-		CoXMLNode* node = new CoXMLNode (name, root);
+	static void updateXMLNode (CoStringRef name, void* ptr, Type type) {
+		CoXMLNode* node = G_XMLDocument->navigateTo (name.split ("_"), true);
+		if (!node)
+			node = new CoXMLNode (name, G_XMLDocument->root());
 		
 		switch (type) {
 		case IntType:
@@ -32,21 +35,29 @@ namespace CoConfig {
 			break;
 		
 		case StringListType:
-			for (const CoString& item : *(reinterpret_cast<CoStringList*> (ptr))) {
+			for (CoXMLNode* subnode : node->nodes())
+				delete subnode;
+			
+			for (const CoString& item : *(reinterpret_cast<StringList*> (ptr))) {
 				CoXMLNode* subnode = new CoXMLNode ("item", node);
 				subnode->setContents (item);
 			}
 			break;
 		
 		case IntListType:
-			for (int item : *(reinterpret_cast<CoList<int>*> (ptr))) {
+			for (int item : *(reinterpret_cast<IntList*> (ptr))) {
 				CoXMLNode* subnode = new CoXMLNode ("item", node);
 				subnode->setContents (CoString::fromNumber (item));
 			}
 			break;
-		}
 		
-		return node;
+		case StringMapType:
+			for (auto pair : *(reinterpret_cast<StringMap*> (ptr))) {
+				CoXMLNode* subnode = new CoXMLNode (pair.first, node);
+				subnode->setContents (pair.second);
+			}
+			break;
+		}
 	}
 	
 	// =============================================================================
@@ -94,6 +105,15 @@ namespace CoConfig {
 					var << subnode->contents().toLong();
 			}
 			break;
+		
+		case StringMapType:
+			{
+				StringMap& var = *(reinterpret_cast<StringMap*> (ptr));
+				
+				for (const CoXMLNode* subnode : node->nodes())
+					var[subnode->name()] = subnode->contents();
+			}
+			break;
 		}
 	}
 	
@@ -111,13 +131,13 @@ namespace CoConfig {
 			if (i.name == null)
 				break;
 			
-			CoXMLNode* node = doc->root()->findSubNode (i.name);
+			CoXMLNode* node = doc->navigateTo (CoString (i.name).split ("_"));
 			
 			if (node)
 				setConfigValue (i.ptr, i.type, node);
 		}
 		
-		delete doc;
+		G_XMLDocument = doc;
 		return true;
 	}
 	
@@ -125,19 +145,19 @@ namespace CoConfig {
 	// Save the configuration to disk
 	// -----------------------------------------------------------------------------
 	bool save (CoStringRef fname) {
-		CoXMLDocument* doc = CoXMLDocument::newDocumentWithRoot ("config");
+		if (G_XMLDocument == null)
+			G_XMLDocument = CoXMLDocument::newDocumentWithRoot ("config");
+		
 		print ("Saving configuration to %1...\n", fname);
 		
 		for (alias i : g_configData) {
 			if (i.name == null)
 				break;
 			
-			makeXMLNode (i.name, i.ptr, i.type, doc->root());
+			updateXMLNode (i.name, i.ptr, i.type);
 		}
 		
-		bool r = doc->save (fname);
-		delete doc;
-		return r;
+		return G_XMLDocument->save (fname);
 	}
 	
 	// =============================================================================
@@ -153,4 +173,8 @@ namespace CoConfig {
 		}
 	}
 	*/
+	
+	CoXMLDocument* xml() {
+		return G_XMLDocument;
+	}
 }

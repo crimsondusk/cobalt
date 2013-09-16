@@ -9,23 +9,33 @@ class CoXMLNode;
 // =============================================================================
 // -----------------------------------------------------------------------------
 class CoXMLDocument {
+	PROPERTY (int, indentStyle, setIndentStyle)
+	
 public:
+	enum {
+		NoStylePreference = INT_MAX - 1,
+		Tabs              = INT_MAX
+	};
+	
 	CoXMLDocument (CoXMLNode* root = null);
 	~CoXMLDocument();
 	
 	CoXMLNode* findNodeByName (CoStringRef name) const;
+	CoXMLNode* navigateTo (CoStringListRef path, bool allowMake = false) const;
 	bool       save (CoStringRef fname) const;
 	void       setRootNode (CoXMLNode* root);
 	
 	inline CoXMLNode* root() const {
 		return m_root;
 	}
-
+	
 	static CoXMLDocument*   newDocumentWithRoot (CoStringRef rootName);
 	static CoXMLDocument*   load (CoStringRef fname);
 	static CoStringRef      parseError();
 	static CoString         encode (CoStringRef in);
 	static CoString         decode (CoStringRef in);
+	static int              globalIndentation();
+	static void             setGlobalIndentation (int spaces);
 	
 protected:
 	void setHeader (const CoMap<CoString, CoString>& header);
@@ -46,14 +56,16 @@ public:
 	CoXMLNode (CoStringRef name, CoXMLNode* parent);
 	~CoXMLNode();
 	
-	CoString     attribute (CoStringRef name) const;
-	CoStringRef  contents() const;
-	void         dropNode (CoXMLNode* node);
-	CoXMLNode*   findSubNode (CoStringRef fname, bool recursive = false);
-	bool         hasAttribute (CoStringRef name);
-	void         setAttribute (CoStringRef name, CoStringRef data);
-	void         setCDATA (bool v);
-	void         setContents (CoStringRef data);
+	CoString            attribute (CoStringRef name) const;
+	CoStringRef         contents() const;
+	void                dropNode (CoXMLNode* node);
+	CoXMLNode*          findSubNode (CoStringRef fname, bool recursive = false);
+	CoList<CoXMLNode*>  getNodesByName (CoStringRef name);
+	bool                hasAttribute (CoStringRef name);
+	bool                isEmpty() const;
+	void                setAttribute (CoStringRef name, CoStringRef data);
+	void                setCDATA (bool v);
+	void                setContents (CoStringRef data);
 	
 	inline const CoMap<CoString, CoString>& attributes() const {
 		return m_attrs;
@@ -67,18 +79,12 @@ public:
 		return m_isCData;
 	}
 	
-	inline bool isSelfEnclosing() const {
-		return m_isSelfEnclosing;
-	}
-	
-	static CoXMLNode* newSelfEnclosingNode (CoStringRef name, CoXMLNode* parent);
-	
 protected:
 	CoString                    m_contents;
 	CoList<CoXMLNode*>          m_nodes;
 	CoMap<CoString, CoString>   m_attrs;
-	bool                        m_isCData,
-	                            m_isSelfEnclosing;
+	bool                        m_isCData;
+	CoXMLNode*                  m_parent;
 	friend class CoXMLDocument;
 };
 

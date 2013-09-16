@@ -1,6 +1,7 @@
 #include <netdb.h>
 #include "libcobaltcore/time.h"
 #include "libcobaltcore/ip.h"
+#include <libcobaltcore/xml.h>
 #include "../main.h"
 #include "../mantisbt.h"
 #include "../zanserver.h"
@@ -247,4 +248,59 @@ IRC_COMMAND (masshighlight) {
 
 IRC_COMMAND (mhl) {
 	IRCCommand_masshighlight (conn, invoker, channel, message, parms);
+}
+
+IRC_COMMAND (add_autojoin) {
+	if (!invoker->isAdmin() || parms.size() < 2)
+		return;
+	
+	CoXMLNode* parent = CoConfig::xml()->navigateTo ({"irc", "channels"}, true);
+	
+	// Check if we already have this in our auto-joins
+	bool isNew = true;
+	CoXMLNode* chanNode = null;
+	for (CoXMLNode* subnode : parent->nodes()) {
+		if (subnode->name() == "channel" && subnode->contents() == parms[1]) {
+			chanNode = subnode;
+			isNew = false;
+			break;
+		}
+	}
+	
+	if (chanNode == null)
+		chanNode = new CoXMLNode ("channel", parent);
+	
+	chanNode->setAttribute ("name", parms[1]);
+	
+	IRCChannel* chan = conn->findChannel (parms[1]);
+	IRCChannel::Mode* mode_k = chan ? chan->getMode (ChanMode_Locked) : null;
+	CoString passwordBlurb = "";
+	
+	if (mode_k != null) {
+		chanNode->setAttribute ("password", mode_k->arg);
+		passwordBlurb = fmt (" (password: %1)", mode_k->arg);
+	}
+	
+	REPLY ("%1 auto-join channel %2%3", (isNew ? "Added" : "Updated"),  parms[1], passwordBlurb);
+	saveConfig();
+}
+
+IRC_COMMAND (rehash) {
+	if (!invoker->isAdmin())
+		return;
+	
+	if (!CoConfig::load (configFileName()))
+		REPLY ("Error rehashing: %1", CoXMLDocument::parseError())
+	else
+		REPLY ("Rehash successful")
+}
+
+IRC_COMMAND (writecfg) {
+	if (!invoker->isAdmin())
+		return;
+	
+	if (!CoConfig::save (configFileName()))
+		REPLY ("Error saving: %1", strerror (errno))
+	else
+		REPLY ("Saved successfully")
 }

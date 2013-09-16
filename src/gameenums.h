@@ -5,7 +5,7 @@
 #endif
 
 #ifndef BEGIN_GAMES_ENUM
-# error gameenums.h incorrectly included, did you mean gameinfo.h?
+# error gameenums.h incorrectly included, did you mean zanserver.h?
 #endif
 
 BEGIN_GAMES_ENUM

@@ -11,6 +11,8 @@
 #define EXTERN_CONFIG(T, NAME) extern CoConfig::T NAME;
 #define COBALT_MAX_CONFIG 512
 
+class CoXMLDocument;
+
 // =========================================================
 namespace CoConfig {
 	enum Type {
@@ -20,6 +22,7 @@ namespace CoConfig {
 		BoolType,
 		IntListType,
 		StringListType,
+		StringMapType,
 	};
 	
 	struct ConfigData {
@@ -33,15 +36,17 @@ namespace CoConfig {
 	
 	// Type-definitions for the above enum list
 	typedef int Int;
-	typedef str String;
+	typedef CoString String;
 	typedef float Float;
 	typedef bool Bool;
 	typedef CoList<int> IntList;
 	typedef CoStringList StringList;
+	typedef CoMap<CoString, CoString> StringMap;
 	
 	// ------------------------------------------
-	bool load (CoStringRef fname);
-	bool save (CoStringRef fname);
+	bool           load (CoStringRef fname);
+	bool           save (CoStringRef fname);
+	CoXMLDocument* xml();
 	
 	class ConfigAdder {
 	public:

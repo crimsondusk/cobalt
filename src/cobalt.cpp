@@ -7,12 +7,12 @@
 #include "mantisbt.h"
 #include "zanserver.h"
 #include "3rdparty/huffman.h"
+#include <libcobaltcore/xml.h>
 
 IRCConnection* g_IRCConnection = null;
 
 CONFIG (String, irc_server, "irc.zandronum.com")
 CONFIG (Int,    irc_port,   6667)
-EXTERN_CONFIG (String, irc_channel)
 
 static CoString G_ConfigFile = "cobalt.xml";
 
@@ -20,12 +20,17 @@ void sig (int);
 void term();
 
 int main (int argc, char* argv[]) {
+	CoXMLDocument::setGlobalIndentation (CoXMLDocument::Tabs);
+	
 	print ("%1 version %2.%3 starting\n", APPNAME, VERSION_MAJOR, VERSION_MINOR);
 	if (!CoConfig::load (G_ConfigFile)) {
-		fprint (stderr, "error: Couldn't open %1: %2\n", G_ConfigFile, strerror (errno));
-		fprint (stderr, "Creating default config...\n");
+		fprint (stderr, "error: Couldn't open %1: %2\n", G_ConfigFile, CoXMLDocument::parseError());
 		
-		CoConfig::save (G_ConfigFile);
+		if (errno) {
+			fprint (stderr, "Creating default config...\n");
+			CoConfig::save (G_ConfigFile);
+		}
+		
 		return 1;
 	}
 	
@@ -93,6 +98,16 @@ void DoWarn (const char* file, ulong line, const char* func, initlist<CoVariant>
 	
 	fprintf (stderr, "%s\n", msg.chars());
 	
+#if 0
 	if (g_IRCConnection && g_IRCConnection->loggedIn())
 		g_IRCConnection->privmsg (irc_channel, msg);
+#endif
+}
+
+bool saveConfig() {
+	return CoConfig::save (G_ConfigFile);
+}
+
+CoStringRef configFileName() {
+	return G_ConfigFile;
 }

@@ -36,7 +36,7 @@ class LauncherRequest : public CoUDPSocket {
 		uint8 maxclients, players, gametype, instagib, buckshot;
 		State state;
 		str iwad;
-		list<str> pwads;
+		CoStringList pwads;
 	} m_info;
 
 public:
