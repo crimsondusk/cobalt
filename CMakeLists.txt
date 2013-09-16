@@ -29,9 +29,9 @@ add_library (cobaltcore SHARED
 add_executable (cobalt
 	src/irc/factoids.cpp
 	src/irc/irc.cpp
-	src/irc/irc_channel.cpp
-	src/irc/irc_commands.cpp
-	src/irc/irc_user.cpp
+	src/irc/channel.cpp
+	src/irc/commands.cpp
+	src/irc/user.cpp
 	src/soap/soapC.c
 	src/soap/soapClient.c
 	src/3rdparty/huffman.cpp

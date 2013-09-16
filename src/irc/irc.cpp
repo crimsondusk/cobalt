@@ -1,14 +1,14 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/time.h>
+#include <libcobaltcore/xml.h>
 #include "../main.h"
 #include "../utility.h"
 #include "../mantisbt.h"
 #include "irc.h"
-#include "irc_connection.h"
-#include "irc_user.h"
-#include "irc_channel.h"
-#include <libcobaltcore/xml.h>
+#include "connection.h"
+#include "user.h"
+#include "channel.h"
 
 CONFIG (String,    irc_usermodes, "+iw")
 CONFIG (String,    irc_nickname, APPNAME)

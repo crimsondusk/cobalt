@@ -1,5 +1,5 @@
-#include "irc_channel.h"
-#include "irc_user.h"
+#include "channel.h"
+#include "user.h"
 #include "../utility.h"
 
 IRCChannel::IRCChannel (str name) :

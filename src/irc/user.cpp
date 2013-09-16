@@ -1,6 +1,6 @@
 #include "irc.h"
-#include "irc_user.h"
-#include "irc_channel.h"
+#include "user.h"
+#include "channel.h"
 
 CONFIG (StringList, irc_adminmasks, CoStringList())
 

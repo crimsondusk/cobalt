@@ -2,7 +2,7 @@
 #define COBALT_IRC_USER_H
 
 #include "irc.h"
-#include "irc_channel.h"
+#include "channel.h"
 #include <libcobaltcore/flags.h>
 
 class IRCUser {

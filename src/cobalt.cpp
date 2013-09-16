@@ -4,7 +4,7 @@
 #include <libcobaltcore/xml.h>
 #include "main.h"
 #include "irc/irc.h"
-#include "irc/irc_connection.h"
+#include "irc/connection.h"
 #include "mantisbt.h"
 #include "zanserver.h"
 #include "3rdparty/huffman.h"

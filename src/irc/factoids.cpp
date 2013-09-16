@@ -1,7 +1,7 @@
 #include <libcobaltcore/xml.h>
 #include "irc.h"
-#include "irc_connection.h"
-#include "irc_user.h"
+#include "connection.h"
+#include "user.h"
 static CoXMLDocument* G_FactsXML = null;
 
 static bool initFactsXML() {

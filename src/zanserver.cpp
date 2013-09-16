@@ -2,7 +2,7 @@
 #include "libcobaltcore/bytestream.h"
 #include "libcobaltcore/misc.h"
 #include "irc/irc.h"
-#include "irc/irc_connection.h"
+#include "irc/connection.h"
 
 #define BEGIN_GAMES_ENUM     const CoStringList gamestrings ({
 #define GAME(N)                  #N,

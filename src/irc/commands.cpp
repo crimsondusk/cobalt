@@ -6,9 +6,9 @@
 #include "../mantisbt.h"
 #include "../zanserver.h"
 #include "irc.h"
-#include "irc_channel.h"
-#include "irc_user.h"
-#include "irc_connection.h"
+#include "channel.h"
+#include "user.h"
+#include "connection.h"
 
 EXTERN_CONFIG (String, tracker_url)
 EXTERN_CONFIG (String, irc_commandprefix)
