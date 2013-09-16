@@ -441,3 +441,36 @@ CoList<CoXMLNode*> CoXMLNode::getNodesByName (CoStringRef name) {
 bool CoXMLNode::isEmpty() const {
 	return contents().length() == 0 && nodes().size() == 0;
 }
+
+// =============================================================================
+// -----------------------------------------------------------------------------
+CoXMLNode* CoXMLNode::addSubNode (CoStringRef name, CoStringRef cont) {
+	CoXMLNode* node = new CoXMLNode (name, this);
+	
+	if (cont.length() > 0)
+		node->setContents (cont);
+	
+	return node;
+}
+
+// =============================================================================
+// -----------------------------------------------------------------------------
+CoList<CoXMLNode*> CoXMLNode::getNodesByAttribute (CoStringRef attrname, CoStringRef attrvalue) {
+	CoList<CoXMLNode*> nodes;
+	
+	for (CoXMLNode* node : this->nodes())
+		if (node->attribute (attrname) == attrvalue)
+			nodes << node;
+	
+	return nodes;
+}
+
+// =============================================================================
+// -----------------------------------------------------------------------------
+CoXMLNode* CoXMLNode::getOneNodeByAttribute (CoStringRef attrname, CoStringRef attrvalue) {
+	for (CoXMLNode* node : nodes())
+		if (node->attribute (attrname) == attrvalue)
+			return node;
+	
+	return null;
+}

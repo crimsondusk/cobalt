@@ -56,10 +56,13 @@ public:
 	CoXMLNode (CoStringRef name, CoXMLNode* parent);
 	~CoXMLNode();
 	
+	CoXMLNode*          addSubNode (CoStringRef name, CoStringRef cont = "");
 	CoString            attribute (CoStringRef name) const;
 	CoStringRef         contents() const;
 	void                dropNode (CoXMLNode* node);
 	CoXMLNode*          findSubNode (CoStringRef fname, bool recursive = false);
+	CoList<CoXMLNode*>  getNodesByAttribute (CoStringRef attrname, CoStringRef attrvalue);
+	CoXMLNode*          getOneNodeByAttribute (CoStringRef attrname, CoStringRef attrvalue);
 	CoList<CoXMLNode*>  getNodesByName (CoStringRef name);
 	bool                hasAttribute (CoStringRef name);
 	bool                isEmpty() const;
