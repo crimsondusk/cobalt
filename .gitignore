@@ -4,3 +4,5 @@ cobalt.kdev4
 .backup
 .kdev_include_paths
 cobalt
+cobalt.xml
+*.bak
