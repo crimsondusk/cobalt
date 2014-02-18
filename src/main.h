@@ -18,7 +18,7 @@ void fatal (const char* fmtstr, ...);
 void warn (const char* msg, ...);
 #endif // IN_IDE_PARSER
 
-void fatal_error ( const char* file, ulong line, const char* func, const cbl::list< cbl::variant >& s );
-void warn_args ( const char* file, ulong line, const char* func, const cbl::list< cbl::variant >& s );
+void fatal_error ( const char* file, ulong line, const char* func, const cbl::list< cbl::format_arg >& s );
+void warn_args ( const char* file, ulong line, const char* func, const cbl::list< cbl::format_arg >& s );
 bool save_configuration();
 const cbl::string& get_config_file_name();

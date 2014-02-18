@@ -18,11 +18,10 @@ namespace cbl
 			return "{}";
 
 		string text;
-		uint i = 0;
 
 		for( const auto& it : array )
 		{
-			if( text.is_empty() )
+			if( text.is_empty() == false )
 				text += ", ";
 
 			variant arg = it;
@@ -72,7 +71,7 @@ namespace cbl
 	// Example: cbl::value_map<const char*>( n, "No medal", { 1, "Gold", 2, "Silver", 3, "Bronze" })
 	//
 	template <typename T>
-	T value_map( int expr, T defaultval, list<tuple<int, T>> values )
+	T value_map( int expr, T defaultval, list<std::tuple<int, T>> values )
 	{
 		for( auto it = values.begin(); it != values.end(); ++it )
 			if( std::get<0>( *it ) == expr )

@@ -5,95 +5,62 @@
 
 namespace cbl
 {
-	// -----------------------------------------------------------------------------
+	// -------------------------------------------------------------------------
 	//
-	void print_args( FILE* fp, list<variant> const& args )
-	{
-		string msg = format_args( args );
-		fprintf( fp, "%s", msg.c_str() );
-	}
-
-	// -----------------------------------------------------------------------------
+	//    Does most of the formatting work
 	//
-	string format_args( list<variant> const& args )
+	string format_args( const cbl::string& fmtstr, const vector< cbl::string >& args )
 	{
-		assert( args.size() >= 1 );
-		assert( args.begin()->value_type() == variant::string_type );
+		if( args.is_empty() )
+			return fmtstr;
 
-		bool perc = false;
-		int percnum = 0;
-		int percdigits = 0;
-		string fmtd;
-		string percstr;
-		string fmtstr = args.begin()->as_string();
+		string fmt = fmtstr;
+		string out;
+		int pos = 0;
 
-		for( const char* c = &fmtstr[0];; c++ )
+		while(( pos = fmt.first( "%", pos ) ) != -1 )
 		{
-			if( perc )
+			if( fmt[pos + 1] == '%' )
 			{
-				if( *c >= '0' && *c <= '9' )
-				{
-					// Argument digit
-					percnum += ( *c - '0' ) * exponent( 10, percdigits );
-					percdigits++;
-					percstr += *c;
-					continue;
-				}
-				else if( percdigits > 0 )
-				{
-					// End of argument, fill in the value
-					if( args.size() < percnum + 1 )
-					{
-						print_to( stderr, "Too few arguments to format string `%1`\n", fmtstr );
-						fmtd += percstr;
-					}
-					else
-						fmtd += ( args.begin() + percnum )->describe();
-
-					perc = false;
-				} else
-				{
-					// '%' followed by a non-digit. If we got %%, add both percentage signs
-					// and jump to the start of the loop to prevent the latter % from being
-					// intepreted as an argument symbol.
-
-					perc = false;
-					fmtd += "%";
-
-					if( *c == '%' )
-					{
-						fmtd += "%";
-						continue;
-					}
-				}
-			}
-
-			if( *c == '\0' )
-				break;
-
-			if( *c == '%' )
-			{
-				if( perc )
-				{
-					// Another case of %%
-					perc = false;
-					fmtd += "%%";
-				}
-				else
-				{
-					// We got '%', begin intepreting argument
-					perc = true;
-					percdigits = 0;
-					percnum = 0;
-					percstr = "%";
-				}
-
+				fmt.replace( pos, 2, "%" );
+				pos++;
 				continue;
 			}
 
-			fmtd += *c;
+			int ofs = 1;
+			char mod = '\0';
+
+			// handle modifiers
+			if( fmt[pos + ofs] == 's' || fmt[pos + ofs] == 'x' || fmt[pos + ofs] == 'd' )
+			{
+				mod = fmt[pos + ofs];
+				ofs++;
+			}
+
+			if( !isdigit( fmt[pos + ofs] ) )
+				throw std::logic_error( "bad format string, expected digit with optional "
+					"modifier after '%%'" );
+
+			int i = fmt[pos + ofs]  - '0';
+
+			if( i >= args.size() + 1 )
+				throw std::logic_error( format( "format arg #%1 used but not defined, in format string \"%2\"",
+					i, fmtstr ));
+
+			string repl = args[i - 1];
+
+			switch( mod )
+			{
+				case 's': repl = ( repl == "1" ) ? "" : "s";		break;
+				case 'd': repl.sprintf( "%d", repl[0] );			break;
+				case 'x': repl.sprintf( "0x%X", repl.to_long() );	break;
+				default: break;
+			}
+
+			fmt.replace( pos, 1 + ofs, repl );
+			pos += repl.length();
 		}
 
-		return fmtd;
+		return fmt;
 	}
 }

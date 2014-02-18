@@ -116,9 +116,20 @@ namespace cbl
 				m_string.erase( m_string.begin() + pos );
 			}
 
+			inline void replace( int pos, int len, const string& replacement )
+			{
+				m_string.replace( m_string.begin() + pos, m_string.begin() + pos + len,
+					replacement.c_str(), replacement.length() );
+			}
+
 			inline void insert( int pos, char c )
 			{
 				m_string.insert( m_string.begin() + pos, c );
+			}
+
+			inline void insert( int pos, const string& a )
+			{
+				m_string.replace( m_string.begin() + pos, m_string.begin() + pos, a.c_str(), a.length() );
 			}
 
 			inline int length() const
@@ -196,6 +207,17 @@ namespace cbl
 			inline bool operator!= ( const char* other ) const
 			{
 				return compare( other ) != 0;
+			}
+
+			void sprintf( const char* fmtstr, ... )
+			{
+				char buf[512];
+				va_list va;
+				va_start( va, fmtstr );
+				vsprintf( buf, fmtstr, va );
+				va_end( va );
+
+				m_string = buf;
 			}
 
 			inline bool operator!() const

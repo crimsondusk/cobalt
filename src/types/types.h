@@ -35,8 +35,5 @@ namespace cbl
 	template<class T, class R>
 	using pair = std::pair<T, R>;
 
-	template<class... args>
-	using tuple = std::tuple<args...>;
-
 	static const long long g_billion = 1000000000000LL;
 }

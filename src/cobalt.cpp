@@ -2,6 +2,10 @@
 #include <unistd.h>
 #include <signal.h>
 #include "main.h"
+#include "types/variant.h"
+#include "types/tuple.h"
+#include "types/ip.h"
+#include <typeinfo>
 //#include "irc/irc.h"
 //#include "irc/connection.h"
 
@@ -19,47 +23,58 @@ void on_terminate();
 //
 int main( int argc, char* argv[] )
 {
-	// print( "%1 version %2.%3 starting\n", APPNAME, VERSION_MAJOR, VERSION_MINOR );
-
-	/*
-	if( cbl::load_config( g_config_file ) == false )
+	try
 	{
-		print_to( stderr, "error: Couldn't open %1: %2\n", g_config_file, xml_document::parseError() );
+		cbl::tuple<int, float, cbl::string, cbl::ip_address> argh( 5, 3.14f, "argh", cbl::localhost );
+		int blargh = 1;
+		cbl::print( "tuple: %1\ntest: %2 blargh%s2\n", argh, blargh );
+		// print( "%1 version %2.%3 starting\n", APPNAME, VERSION_MAJOR, VERSION_MINOR );
 
-		if( errno )
+		/*
+		if( cbl::load_config( g_config_file ) == false )
 		{
-			print_to( stderr, "Creating default config...\n" );
-			cbl::save_config( g_config_file );
+			print_to( stderr, "error: Couldn't open %1: %2\n", g_config_file, xml_document::parseError() );
+
+			if( errno )
+			{
+				print_to( stderr, "Creating default config...\n" );
+				cbl::save_config( g_config_file );
+			}
+
+			return 1;
 		}
 
+		atexit( on_terminate );
+
+		struct sigaction sighandler;
+		sighandler.sa_handler = &crash_handler;
+		sighandler.sa_flags = 0;
+		sigemptyset( &sighandler.sa_mask );
+		sigaction( SIGINT, &sighandler, cbl::null );
+		sigaction( SIGSEGV, &sighandler, cbl::null );
+
+		// Create the IRC connection.
+		g_IRCConnection = new IRCConnection( cfg::irc_server, cfg::irc_port );
+
+		for( ;; )
+		{
+			g_IRCConnection->Tick();
+			tickServerRequests();
+		}
+		*/
+	}
+	catch( std::exception& e )
+	{
+		fprintf( stderr, "error: %s\n", e.what() );
 		return 1;
 	}
-
-	atexit( on_terminate );
-
-	struct sigaction sighandler;
-	sighandler.sa_handler = &crash_handler;
-	sighandler.sa_flags = 0;
-	sigemptyset( &sighandler.sa_mask );
-	sigaction( SIGINT, &sighandler, cbl::null );
-	sigaction( SIGSEGV, &sighandler, cbl::null );
-
-	// Create the IRC connection.
-	g_IRCConnection = new IRCConnection( cfg::irc_server, cfg::irc_port );
-
-	for( ;; )
-	{
-		g_IRCConnection->Tick();
-		tickServerRequests();
-	}
-	*/
 
 	return 0;
 }
 
 void on_terminate()
 {
-	print( APPNAME " exiting\n" );
+	cbl::print( APPNAME " exiting\n" );
 	// delete g_IRCConnection;
 }
 
@@ -87,7 +102,8 @@ void crash_handler( int signum )
 	*/
 }
 
-void fatal_error( const char* file, ulong line, const char* func, cbl::list<cbl::variant> const& s )
+/*
+void fatal_error( const char* file, ulong line, const char* func, cbl::list<cbl::format_arg> const& s )
 {
 	cbl::string body = cbl::format_args( s );
 	cbl::string msg = format( "fatal() called: %1:%2: %3: ", file, line, func );
@@ -103,7 +119,7 @@ void fatal_error( const char* file, ulong line, const char* func, cbl::list<cbl:
 	abort();
 }
 
-void warn_args( const char* file, ulong line, const char* func, cbl::list<cbl::variant> const& s )
+void warn_args( const char* file, ulong line, const char* func, cbl::list<cbl::format_arg> const& s )
 {
 	cbl::string body = cbl::format_args( s );
 	cbl::string msg = format( "warning: %1:%2: %3: ", file, line, func );
@@ -116,6 +132,7 @@ void warn_args( const char* file, ulong line, const char* func, cbl::list<cbl::v
 		g_IRCConnection->privmsg( irc_channel, msg );
 #endif
 }
+*/
 
 bool save_configuration()
 {
