@@ -1,13 +1,14 @@
-#ifndef COMMON_H
-#define COMMON_H
-
-#include <libcobaltcore/main.h>
-#include <libcobaltcore/format.h>
-#include <libcobaltcore/config.h>
+#pragma once
+#include "macros.h"
 #include "version.h"
-#include "utility.h"
-
-typedef CoString str;
+#include "types/templates.h"
+#include "types/property.h"
+#include "types/types.h"
+#include "types/containers.h"
+#include "types/string.h"
+#include "types/variant.h"
+#include "types/format.h"
+#include "types/config.h"
 
 #ifndef IN_IDE_PARSER
 # define fatal( ... ) FatalError( __FILE__, __LINE__, __func__, { __VA_ARGS__ })
@@ -17,9 +18,7 @@ void fatal (const char* fmtstr, ...);
 void warn (const char* msg, ...);
 #endif // IN_IDE_PARSER
 
-void FatalError (const char* file, ulong line, const char* func, initlist<CoVariant> s);
-void DoWarn (const char* file, ulong line, const char* func, std::initializer_list<CoVariant> s);
-bool saveConfig();
-CoStringRef configFileName();
-
-#endif // COMMON_H
+void fatal_error ( const char* file, ulong line, const char* func, const cbl::list< cbl::variant >& s );
+void warn_args ( const char* file, ulong line, const char* func, const cbl::list< cbl::variant >& s );
+bool save_configuration();
+const cbl::string& get_config_file_name();

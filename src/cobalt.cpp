@@ -1,113 +1,128 @@
 #include <sys/time.h>
 #include <unistd.h>
 #include <signal.h>
-#include <libcobaltcore/xml.h>
 #include "main.h"
-#include "irc/irc.h"
-#include "irc/connection.h"
-#include "mantisbt.h"
-#include "zanserver.h"
-#include "3rdparty/huffman.h"
+//#include "irc/irc.h"
+//#include "irc/connection.h"
 
-IRCConnection* g_IRCConnection = null;
+//IRCConnection* g_IRCConnection = cbl::null;
 
-CONFIG (String, irc_server, "")
-CONFIG (Int,    irc_port,   6667)
+CBL_CONFIG( string,	irc_server,	"" )
+CBL_CONFIG( int,	irc_port,	6667 )
 
-CoString G_ConfigFile = "cobalt.xml";
+static const cbl::string g_config_file = APPNAME ".xml";
 
-void sig (int);
-void term();
+void crash_handler( int );
+void on_terminate();
 
-int main (int argc, char* argv[]) {
-	CoXMLDocument::setGlobalIndentation (CoXMLDocument::Tabs);
-	
-	print ("%1 version %2.%3 starting\n", APPNAME, VERSION_MAJOR, VERSION_MINOR);
-	if (!CoConfig::load (G_ConfigFile)) {
-		fprint (stderr, "error: Couldn't open %1: %2\n", G_ConfigFile, CoXMLDocument::parseError());
-		
-		if (errno) {
-			fprint (stderr, "Creating default config...\n");
-			CoConfig::save (G_ConfigFile);
+// -----------------------------------------------------------------------------
+//
+int main( int argc, char* argv[] )
+{
+	// print( "%1 version %2.%3 starting\n", APPNAME, VERSION_MAJOR, VERSION_MINOR );
+
+	/*
+	if( cbl::load_config( g_config_file ) == false )
+	{
+		print_to( stderr, "error: Couldn't open %1: %2\n", g_config_file, xml_document::parseError() );
+
+		if( errno )
+		{
+			print_to( stderr, "Creating default config...\n" );
+			cbl::save_config( g_config_file );
 		}
-		
+
 		return 1;
 	}
-	
-	atexit (term);
-	HUFFMAN_Construct();
-	
+
+	atexit( on_terminate );
+
 	struct sigaction sighandler;
-	sighandler.sa_handler = &sig;
+	sighandler.sa_handler = &crash_handler;
 	sighandler.sa_flags = 0;
-	sigemptyset (&sighandler.sa_mask);
-	sigaction (SIGINT, &sighandler, null);
-	sigaction (SIGSEGV, &sighandler, null);
-	
+	sigemptyset( &sighandler.sa_mask );
+	sigaction( SIGINT, &sighandler, cbl::null );
+	sigaction( SIGSEGV, &sighandler, cbl::null );
+
 	// Create the IRC connection.
-	g_IRCConnection = new IRCConnection (irc_server, irc_port);
-	
-	forever {
-		g_IRCConnection->tick();
+	g_IRCConnection = new IRCConnection( cfg::irc_server, cfg::irc_port );
+
+	for( ;; )
+	{
+		g_IRCConnection->Tick();
 		tickServerRequests();
 	}
-	
+	*/
+
 	return 0;
 }
 
-void term() {
-	print (APPNAME " exiting\n");
-	delete g_IRCConnection;
+void on_terminate()
+{
+	print( APPNAME " exiting\n" );
+	// delete g_IRCConnection;
 }
 
-void sig (int signum) {
-	switch (signum) {
-	case SIGINT:
-		if (g_IRCConnection)
-			g_IRCConnection->write ("QUIT :Interrupted\n");
-		
-		exit (EXIT_FAILURE);
-		
-	case SIGSEGV:
-		if (g_IRCConnection)
-			g_IRCConnection->write ("QUIT :Segmentation fault\n");
-		
-		exit (EXIT_FAILURE);
+void crash_handler( int signum )
+{
+	/*
+	switch( signum )
+	{
+		case SIGINT:
+		{
+			if( g_IRCConnection )
+				g_IRCConnection->write( "QUIT :Interrupted\n" );
+
+			exit( EXIT_FAILURE );
+		} break;
+
+		case SIGSEGV:
+		{
+			if( g_IRCConnection )
+				g_IRCConnection->write( "QUIT :Segmentation fault\n" );
+
+			exit( EXIT_FAILURE );
+		} break;
 	}
+	*/
 }
 
-void FatalError (const char* file, ulong line, const char* func, initlist<CoVariant> s) {
-	str body = DoFormat (s);
-	str msg = fmt ("fatal() called: %1:%2: %3: ", file, line, func);
+void fatal_error( const char* file, ulong line, const char* func, cbl::list<cbl::variant> const& s )
+{
+	cbl::string body = cbl::format_args( s );
+	cbl::string msg = format( "fatal() called: %1:%2: %3: ", file, line, func );
 	msg += body;
 	msg += ", aborting";
-	
-	fprint (stderr, "%1\n", msg);
-	
+
+	print_to( stderr, "%1\n", msg );
+
 	// Quit with the error message if we're connected
-	if (g_IRCConnection && g_IRCConnection->loggedIn())
-		g_IRCConnection->write (fmt ("QUIT :%1\n", msg));
-	
+	//if( g_IRCConnection && g_IRCConnection->loggedIn() )
+	//	g_IRCConnection->write( format( "QUIT :%1\n", msg ) );
+
 	abort();
 }
 
-void DoWarn (const char* file, ulong line, const char* func, initlist<CoVariant> s) {
-	str body = DoFormat (s);
-	str msg = fmt ("warning: %1:%2: %3: ", file, line, func);
+void warn_args( const char* file, ulong line, const char* func, cbl::list<cbl::variant> const& s )
+{
+	cbl::string body = cbl::format_args( s );
+	cbl::string msg = format( "warning: %1:%2: %3: ", file, line, func );
 	msg += body;
-	
-	fprintf (stderr, "%s\n", msg.chars());
-	
+
+	print_to( stderr, msg + "\n" );
+
 #if 0
-	if (g_IRCConnection && g_IRCConnection->loggedIn())
-		g_IRCConnection->privmsg (irc_channel, msg);
+	if( g_IRCConnection && g_IRCConnection->loggedIn() )
+		g_IRCConnection->privmsg( irc_channel, msg );
 #endif
 }
 
-bool saveConfig() {
-	return CoConfig::save (G_ConfigFile);
+bool save_configuration()
+{
+	return cbl::save_config( g_config_file );
 }
 
-CoStringRef configFileName() {
-	return G_ConfigFile;
+const cbl::string& get_config_file_name()
+{
+	return g_config_file;
 }

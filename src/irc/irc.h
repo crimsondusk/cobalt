@@ -12,9 +12,9 @@ class IRCChannel;
 class IRCConnection;
 class IRCUser;
 
-namespace IRC {
-	enum Color {
-		White,
+namespace IRC
+{	enum Color
+	{	White,
 		Black,
 		Blue,
 		Green,
@@ -31,48 +31,15 @@ namespace IRC {
 		DarkGray,
 		LightGray
 	};
-	
+
 	str getColor (Color fg);
 	str getColor (Color fg, Color bg);
 }
 
 // =============================================================================
-#define IRC_COMMAND_PARMS \
-	IRCConnection* conn, \
-	IRCUser* invoker, \
-	IRCChannel* channel, \
-	CoString message, \
-	CoStringList parms
-
-#define IRC_COMMAND(X) \
-void IRCCommand_##X (IRC_COMMAND_PARMS); \
-IRCCommandAdder CMDAdder_##X (#X, &IRCCommand_##X); \
-void IRCCommand_##X (IRC_COMMAND_PARMS)
-
-#define IRC_REPLY(...) conn->privmsg (REPLY_TARGET, fmt (__VA_ARGS__));
-#define REPLY_TARGET IRCReplyTarget (invoker, channel)
-str IRCReplyTarget (IRCUser* sender, IRCChannel* chan);
-
-typedef void (*IRCCommandType) (IRC_COMMAND_PARMS);
-
-struct IRCCommandInfo {
-	const char* namestring;
-	IRCCommandType func;
-};
-
-// List of all commands we have defined + pointers to them
-extern CoList<IRCCommandInfo> g_IRCCommands;
-
-// This class adds an IRC command to g_IRCCommands
-class IRCCommandAdder {
-public:
-	IRCCommandAdder (const char* namestring, IRCCommandType func);
-};
-
-// =============================================================================
 // IRC server reply codes.. not a comprehensive list
-enum ReplyCode {
-	RPL_WELCOME          = 001,
+enum ReplyCode
+{	RPL_WELCOME          = 001,
 	RPL_YOURHOST         = 002,
 	RPL_CREATED          = 003,
 	RPL_MYINFO           = 004,

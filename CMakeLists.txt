@@ -4,44 +4,29 @@ set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}")
 set (CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
 
 if (CMAKE_COMPILER_IS_GNUCXX)
-	set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -W -Wall -Wno-unused-parameter -std=c++11")
+	set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -W -Wall -Wno-unused-parameter -std=c++0x")
 endif()
 
-include_directories (${CMAKE_CURRENT_SOURCE_DIR})
-find_package (GSOAP REQUIRED)
-
-add_library (cobaltcore SHARED
-	libcobaltcore/bytestream.cc
-	libcobaltcore/config.cc
-	libcobaltcore/cmdlineparser.cc
-	libcobaltcore/format.cc
-	libcobaltcore/ip.cc
-	libcobaltcore/string.cc
-	libcobaltcore/tcp.cc
-	libcobaltcore/time.cc
-	libcobaltcore/udp.cc
-	libcobaltcore/variant.cc
-	libcobaltcore/misc.cc
-	libcobaltcore/xml.cc
-	libcobaltcore/xml_scanner.cc
-)
+include_directories (${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/src/)
 
 add_executable (cobalt
-	src/irc/factoids.cpp
-	src/irc/irc.cpp
-	src/irc/channel.cpp
-	src/irc/commands.cpp
-	src/irc/user.cpp
-	src/soap/soapC.c
-	src/soap/soapClient.c
-	src/3rdparty/huffman.cpp
 	src/cobalt.cpp
-	src/mantisbt.cpp
-	src/utility.cpp
-	src/zanserver.cpp
-)
-
-target_link_libraries (cobalt
-	gsoap
-	cobaltcore
+#	src/types/bytestream.cc
+#	src/types/cmdlineparser.cc
+	src/types/config.cc
+	src/types/date.cc
+	src/types/flood_throttle.cc
+	src/types/format.cc
+	src/types/ip.cc
+	src/types/misc.cc
+	src/types/stopwatch.cc
+	src/types/string.cc
+	src/types/string_list.cc
+	src/types/tcp.cc
+	src/types/time.cc
+#	src/types/udp.cc
+	src/types/variant.cc
+	src/types/xml_document.cc
+	src/types/xml_node.cc
+	src/types/xml_scanner.cc
 )

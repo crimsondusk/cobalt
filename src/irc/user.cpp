@@ -1,6 +1,8 @@
 #include "irc.h"
 #include "user.h"
 #include "channel.h"
+#include "commands.h"
+#include "connection.h"
 
 CONFIG (StringList, irc_adminmasks, CoStringList())
 
@@ -34,7 +36,7 @@ void IRCUser::checkAdmin() {
 // =============================================================================
 // -----------------------------------------------------------------------------
 str IRCUser::userhost() const {
-	return fmt ("%1!%2@%3", nick(), user(), host());
+	return Format ("%1!%2@%3", nick(), user(), host());
 }
 
 // =============================================================================
@@ -79,7 +81,7 @@ IRCUser IRCUser::operator^= (Flags f) {
 // =============================================================================
 // -----------------------------------------------------------------------------
 str IRCUser::asString() const {
-	return fmt ("%1 (%2@%3)", nick(), user(), host());
+	return Format ("%1 (%2@%3)", nick(), user(), host());
 }
 
 // =============================================================================
@@ -98,4 +100,21 @@ void IRCUser::delKnownChannel (IRCChannel* chan) {
 // -----------------------------------------------------------------------------
 bool IRCUser::isAdmin() const {
 	return flags() & Flags (Admin);
+}
+
+// =============================================================================
+// -----------------------------------------------------------------------------
+bool IRCUser::canCallCommand (const IRCCommandInfo& cmd, IRCChannel* where) {
+	if (cmd.adminOnly && !isAdmin())
+		return false;
+	
+	if (where) {
+		Print ("status: %1 <-> %2\n", chanStatus (where), cmd.reqstatus);
+	}
+	
+	if (cmd.reqstatus > IRCChannel::Normal &&
+		(!where || chanStatus (where) < cmd.reqstatus)
+	) {
+		return false;
+	}
 }
