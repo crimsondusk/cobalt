@@ -26,13 +26,13 @@ namespace cbl
 	using uint64 = uint64_t;
 	using size_t = std::size_t;
 
-	template<class T>
+	template<typename T>
 	using initializer_list = std::initializer_list<T>;
 
-	template<class T, class R>
+	template<typename T, typename R>
 	using map = std::map<T, R>;
 
-	template<class T, class R>
+	template<typename T, typename R>
 	using pair = std::pair<T, R>;
 
 	static const long long g_billion = 1000000000000LL;

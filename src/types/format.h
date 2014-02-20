@@ -2,6 +2,9 @@
 #include "containers.h"
 #include "variant.h"
 #include "tuple.h"
+#include "ip.h"
+#include "time.h"
+#include "date.h"
 
 namespace cbl
 {
@@ -17,23 +20,14 @@ namespace cbl
 		format_arg( ulong a ) : m_text( string::from_number( a )) {}
 		format_arg( float a ) : m_text( string::from_number( a )) {}
 		format_arg( double a ) : m_text( string::from_number( a )) {}
-		// format_arg( const variant& a ) : m_text( a.describe() ) {}
+		format_arg( const ip_address& a ) : m_text( a.to_string() ) {}
+		format_arg( const ip_range& a ) : m_text( a.to_string() ) {}
+		format_arg( const time& a ) : m_text( a.describe() ) {}
+		format_arg( const date& a ) : m_text( a.describe() ) {}
 
-		template<class T, class R>
-		explicit format_arg( const generic_container<T, R>& a )
-		{
-			string contents;
-
-			for( const auto& it : a )
-			{
-				if( contents.is_empty() == false )
-					contents += ", ";
-
-				contents += variant( it ).describe();
-			}
-
-			m_text = "{" + contents + "}";
-		}
+		template<typename T, typename R>
+		explicit format_arg( const generic_container<T, R>& a ) :
+			m_text( a.describe() ) {}
 
 		template<typename... T>
 		explicit format_arg( tuple<T...>& a ) :
@@ -62,15 +56,10 @@ namespace cbl
 	static void expand_format_args( vector<string>& data ) CBL_UNUSED;
 	static void expand_format_args( vector<string>& data ) {}
 
-	string format_args( const string& fmtstr, const vector<string>& args );
-
 	// -------------------------------------------------------------------------
 	//
 	//    Formats the given @fmtstr with @args and returns the formatted string
 	//
-	template<typename T>
-	string describe_array( const T& array );
-
 	template<typename... argtypes>
 	string format( string fmtstr, const argtypes&... raw_args )
 	{
@@ -105,4 +94,10 @@ namespace cbl
 	{
 		print_to( stdout, fmtstr, args... );
 	}
+
+	// -------------------------------------------------------------------------
+	//
+	//    Formats the given @fmtstr with the given @args.
+	//
+	string format_args( const string& fmtstr, const vector<string>& args );
 };

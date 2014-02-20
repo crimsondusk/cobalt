@@ -94,7 +94,7 @@ int ip_address::resolve( string node, ip_address& val )
 bool ip_address::from_string( string input, ip_address& value )
 {
 	uint parts[4];
-	const int colonpos = input.first( ":" );
+	const int colonpos = input.find_first( ":" );
 	const string addressString = colonpos == -1 ? input : input.get_substring( 0, colonpos );
 
 	value.set_address( 0 );
@@ -249,7 +249,7 @@ bool ip_range::from_string( const cbl::string& input )
 			info->tm_mday = day;
 			info->tm_sec = 0;
 
-			if( token.first( " " ) != -1 )
+			if( token.find_first( " " ) != -1 )
 			{
 				info->tm_hour = hour;
 				info->tm_min = minute;

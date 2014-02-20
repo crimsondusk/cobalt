@@ -60,21 +60,29 @@ namespace cbl
 	DEFINE_VARIANT_TYPE( ip_address )
 	DEFINE_VARIANT_TYPE( ip_range )
 
+	// -----------------------------------------------------------------------------
+	//
 	variant::variant( void* val )
 	{
 		build_as_pointer( val, "void*" );
 	}
 
+	// -----------------------------------------------------------------------------
+	//
 	variant::variant( const char* val )
 	{
 		build_from_string( val );
 	}
 
+	// -----------------------------------------------------------------------------
+	//
 	variant::variant( std::nullptr_t )
 	{
 		build_as_pointer( null, "std::nullptr_t" );
 	}
 
+	// -----------------------------------------------------------------------------
+	//
 	variant::variant( const variant& val )
 	{
 		m_type = val.value_type();
@@ -93,6 +101,8 @@ namespace cbl
 		}
 	}
 
+	// -----------------------------------------------------------------------------
+	//
 	void variant::build_as_pointer( void* val, const char* typestring )
 	{
 		m_type = pointer_type;
@@ -101,37 +111,50 @@ namespace cbl
 		m_allocsize = 0;
 	}
 
-
+	// -----------------------------------------------------------------------------
+	//
 	int variant::allocsize() const
 	{
 		return m_allocsize;
 	}
 
+	// -----------------------------------------------------------------------------
+	//
 	const void* variant::as_pointer() const
 	{
 		return m_value;
 	}
 
+	// -----------------------------------------------------------------------------
+	//
 	variant::~variant()
 	{
 		( *m_deinitfunc )( as_pointer() );
 	}
 
+	// -----------------------------------------------------------------------------
+	//
 	const char* variant::typestring() const
 	{
 		return m_typestring;
 	}
 
+	// -----------------------------------------------------------------------------
+	//
 	variant::data_type variant::value_type() const
 	{
 		return m_type;
 	}
 
+	// -----------------------------------------------------------------------------
+	//
 	int variant::size() const
 	{
 		return sizeof m_value;
 	}
 
+	// -----------------------------------------------------------------------------
+	//
 	string variant::describe() const
 	{
 		switch( m_type )

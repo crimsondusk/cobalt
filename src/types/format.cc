@@ -18,7 +18,7 @@ namespace cbl
 		string out;
 		int pos = 0;
 
-		while(( pos = fmt.first( "%", pos ) ) != -1 )
+		while(( pos = fmt.find_first( "%", pos ) ) != -1 )
 		{
 			if( fmt[pos + 1] == '%' )
 			{

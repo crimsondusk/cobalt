@@ -8,7 +8,7 @@
 
 namespace cbl
 {
-	// =============================================================================
+	// -----------------------------------------------------------------------------
 	//
 	static string				g_error_string;
 	static vector<xml_node*>	g_stack;
@@ -22,7 +22,7 @@ namespace cbl
 		{"\"", "&quot;"}
 	};
 
-	// =============================================================================
+	// -----------------------------------------------------------------------------
 	//
 	static xml_node* topStackNode()
 	{
@@ -32,7 +32,7 @@ namespace cbl
 		return g_stack.last();
 	}
 
-	// =============================================================================
+	// -----------------------------------------------------------------------------
 	//
 	xml_document::xml_document( xml_node* root ) :
 		m_root( root )
@@ -41,21 +41,21 @@ namespace cbl
 		m_header["encoding"] = "UTF-8";
 	}
 
-	// =============================================================================
+	// -----------------------------------------------------------------------------
 	//
 	xml_document::~xml_document()
 	{
 		delete m_root;
 	}
 
-	// =============================================================================
+	// -----------------------------------------------------------------------------
 	//
 	xml_document* xml_document::new_document( string root_name )
 	{
 		return new xml_document( new xml_node( root_name, null ));
 	}
 
-	// =============================================================================
+	// -----------------------------------------------------------------------------
 	//
 	xml_document* xml_document::load_from_file( string fname )
 	{
@@ -136,7 +136,9 @@ namespace cbl
 						}
 						else
 							scan.must_scan_next( xml_scanner::tk_tag_end );
-					} break;
+
+						break;
+					}
 
 					case xml_scanner::tk_tag_closer:
 					{
@@ -147,7 +149,8 @@ namespace cbl
 							throw string( "Misplaced closing tag" );
 
 						scan.must_scan_next( xml_scanner::tk_tag_end );
-					} break;
+						break;
+					}
 
 					case xml_scanner::tk_cdata:
 					case xml_scanner::tk_symbol:
@@ -159,7 +162,8 @@ namespace cbl
 
 						node->set_cdata( scan.token_type() == xml_scanner::tk_cdata );
 						node->set_contents( node->is_cdata() ? scan.token_string() : decode_string( scan.token_string() ));
-					} break;
+						break;
+					}
 
 					case xml_scanner::tk_string:
 					case xml_scanner::tk_header_start:
@@ -169,7 +173,8 @@ namespace cbl
 					case xml_scanner::tk_tag_end:
 					{
 						throw format( "Unexpected token '%1'", scan.token_string() );
-					} break;
+						break;
+					}
 				}
 			}
 		}
@@ -191,7 +196,7 @@ namespace cbl
 		return doc;
 	}
 
-	// =============================================================================
+	// -----------------------------------------------------------------------------
 	//
 	bool xml_document::save_to_file( string fname ) const
 	{
@@ -260,7 +265,7 @@ namespace cbl
 		print_to( fp, "</%1>\n", node->name() );
 	}
 
-	// =============================================================================
+	// -----------------------------------------------------------------------------
 	//
 	string xml_document::encode_string( string in )
 	{
@@ -272,7 +277,7 @@ namespace cbl
 		return out;
 	}
 
-	// =============================================================================
+	// -----------------------------------------------------------------------------
 	//
 	string xml_document::decode_string( string in )
 	{
@@ -284,14 +289,14 @@ namespace cbl
 		return out;
 	}
 
-	// =============================================================================
+	// -----------------------------------------------------------------------------
 	//
 	xml_node* xml_document::find_node_by_name( string name ) const
 	{
 		return root()->find_subnode( name, true );
 	}
 
-	// =============================================================================
+	// -----------------------------------------------------------------------------
 	//
 	xml_node* xml_document::navigate( const cbl::string_list& path, bool create )
 	{
@@ -314,14 +319,14 @@ namespace cbl
 		return node;
 	}
 
-	// =============================================================================
+	// -----------------------------------------------------------------------------
 	//
 	xml_node* xml_document::navigate( const string_list& path ) const
 	{
 		return const_cast<xml_document*>( this )->navigate( path, false );
 	}
 
-	// =============================================================================
+	// -----------------------------------------------------------------------------
 	//
 	string xml_document::get_parse_error()
 	{

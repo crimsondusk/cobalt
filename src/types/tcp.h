@@ -13,12 +13,13 @@ namespace cbl
 
 	public:
 		tcp_socket();
+		virtual ~tcp_socket();
+
 		bool connect_to_host( const ip_address& addr );
 		bool connect_to_host( const cbl::string& node, cbl::uint16 port );
-		long write( const cbl::string& msg );
-			bool tick();
+		ssize_t write( const cbl::string& msg );
+		bool tick();
 
-		virtual ~tcp_socket() {}
 		virtual void incoming (const string& token) = 0;
 
 	private:

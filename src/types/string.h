@@ -26,8 +26,8 @@ namespace cbl
 			int					count( char needle ) const;
 			void				dump() const;
 			bool				ends_with( const string& other ) const;
-			int					first( const string& c, int a = 0 ) const;
-			int					last( const string& c, int a = -1 ) const;
+			int					find_first( const string& c, int a = 0 ) const;
+			int					find_last( const string& c, int a = -1 ) const;
 			string				to_lowercase() const;
 			bool				is_numeric() const;
 			int					get_word_position( int n ) const;

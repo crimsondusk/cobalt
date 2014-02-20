@@ -16,6 +16,10 @@ namespace cbl
 
 	// -----------------------------------------------------------------------------
 	//
+	tcp_socket::~tcp_socket() {}
+
+	// -----------------------------------------------------------------------------
+	//
 	//    Overload for using a @cbl::ip_address as the connect_to_host parameter
 	//
 	bool tcp_socket::connect_to_host( const ip_address& addr )
@@ -155,7 +159,7 @@ namespace cbl
 	//    Writes the given message to the socket. Returns the amount of bytes
 	//    written or -1 if there was an error.
 	//
-	long tcp_socket::write( const cbl::string& msg )
+	ssize_t tcp_socket::write( const cbl::string& msg )
 	{
 		string msg_to_send = msg + '\n';
 

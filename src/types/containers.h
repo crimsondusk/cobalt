@@ -7,6 +7,8 @@
 #include <initializer_list>
 #include "macros.h"
 #include "templates.h"
+#include "variant.h"
+#include "string.h"
 
 namespace cbl
 {
@@ -128,7 +130,7 @@ namespace cbl
 			{
 				// TODO
 				for( const value_type& val : vals )
-					push_back( val );
+					append( val );
 			}
 
 			// ---------------------------------------------------------------------
@@ -220,9 +222,9 @@ namespace cbl
 
 			// ---------------------------------------------------------------------
 			//
-			inline void sort( sort_comparetype compare = &cbl::less<value_type> )
+			inline void sort()
 			{
-				std::sort( begin(), end(), compare );
+				std::sort( begin(), end() );
 			}
 
 			// ---------------------------------------------------------------------
@@ -262,6 +264,36 @@ namespace cbl
 
 			// ---------------------------------------------------------------------
 			//
+			string describe() const
+			{
+				string contents;
+
+				for( const auto& it : a )
+				{
+					if( contents.is_empty() == false )
+						contents += ", ";
+
+					contents += variant( it ).describe();
+				}
+
+				return "{" + contents + "}";
+			}
+
+			// ---------------------------------------------------------------------
+			//
+			self slice( int a, int b ) const
+			{
+				if( b < 0 )
+					b = size() - b;
+
+				self result;
+				result.resize( b - a );
+				std::copy_n( begin() + a, b - a, result.begin() );
+				return result;
+			}
+
+			// ---------------------------------------------------------------------
+			//
 			inline const wrapped_container& get_wrapped() const
 			{
 				return m_data;
@@ -278,7 +310,7 @@ namespace cbl
 	//
 	// Operator for pushing front: List<int> vals; 0 >> vals;
 	//
-	template<class T, class R>
+	template<typename T, typename R>
 	generic_container<T, R>& operator>>( const R& value, generic_container<T, R>& haystack )
 	{
 		haystack.prepend( value );

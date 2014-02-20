@@ -2,11 +2,17 @@
 
 namespace cbl
 {
+	// -----------------------------------------------------------------------------
+	//
 	string_list::string_list() {}
 
+	// -----------------------------------------------------------------------------
+	//
 	string_list::string_list( std::initializer_list<string> vals ) :
 		list<string>( vals ) {}
 
+	// -----------------------------------------------------------------------------
+	//
 	string string_list::join( string delim )
 	{
 		string rep = "";

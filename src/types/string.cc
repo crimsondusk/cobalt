@@ -72,7 +72,7 @@ namespace cbl
 		// Find all separators and store the text left to them.
 		for( ;; )
 		{
-			long b = first( del, a );
+			long b = find_first( del, a );
 
 			if( b == -1 )
 				break;
@@ -98,7 +98,7 @@ namespace cbl
 	{
 		long pos = 0;
 
-		while(( pos = first( a, pos )) != -1 )
+		while(( pos = find_first( a, pos )) != -1 )
 		{
 			m_string = m_string.replace( pos, strlen( a ), b.std_string() );
 			pos += strlen( b );
@@ -200,7 +200,7 @@ namespace cbl
 
 	// =============================================================================
 	//
-	int string::first( const string& c, int a ) const
+	int string::find_first( const string& c, int a ) const
 	{
 		for( ; a < length(); a++ )
 			if( m_string[a] == c[0] && strncmp( m_string.c_str() + a, c.c_str(), c.length() ) == 0 )
@@ -211,7 +211,7 @@ namespace cbl
 
 	// =============================================================================
 	//
-	int string::last( const string& c, int a ) const
+	int string::find_last( const string& c, int a ) const
 	{
 		if( a == -1 || a >= length() )
 			a = length() - 1;
@@ -320,7 +320,7 @@ namespace cbl
 
 	// =============================================================================
 	//
-	template<class T>
+	template<typename T>
 	static string convert_from_number( T i, const char* fmtstr )
 	{
 		char buf[64];
@@ -330,7 +330,7 @@ namespace cbl
 
 	// =============================================================================
 	//
-	template<class T>
+	template<typename T>
 	static string convert_from_float( T i, const char* fmtstr )
 	{
 		string rep;
